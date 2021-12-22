@@ -1,1 +1,2 @@
-# concorde-bot-cafe
+# Concorde Cafe
+A music bot that gives the passengers of Concorde music while they wait for their next flight.
