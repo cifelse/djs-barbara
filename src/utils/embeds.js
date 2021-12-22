@@ -70,7 +70,7 @@ module.exports.editEmbed = {
 	},
 	clear: (embed, interaction) => {
 		embed.setColor(hex.clear);
-		embed.setDescription(`Concorde Cafe has been cleared by ${interaction.member}`);
+		embed.setDescription(`Concorde Cafe has been stopped by ${interaction.member}`);
 	},
 	shuffle: (embed, interaction) => {
 		embed.setColor(hex.shuffle);
