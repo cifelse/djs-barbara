@@ -23,16 +23,16 @@ module.exports.editEmbed = {
 		else {
 			embed.setDescription(`[${search.title}](${search.url})`);
 		}
-		embed.setFooter(`Added by: ${interaction.user.username}`, interaction.user.displayAvatarURL());
+		embed.setFooter({ text: `Added by: ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
 	},
 	youtubePlaylist: (embed, playlist, interaction) => {
 		embed.setColor(hex.youtube);
 		embed.setTitle('Youtube Playlist Added')
 			.setFields(
 				{ name: 'Playlist:', value: `[${playlist.title}](${playlist.url})`, inline: true },
-				{ name: 'Track Count:', value: `${playlist.videoCount}`, inline: true },
-			)
-			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
+				{ name: 'Track Count:', value: `${playlist.total_videos}`, inline: true },
+			);
+		embed.setFooter({ text: `Added by: ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
 	},
 	spotifyPlaylist: (embed, playlist, interaction) => {
 		embed.setColor(hex.spotify);
@@ -42,8 +42,8 @@ module.exports.editEmbed = {
 				{ name: 'Owner:', value: `[${playlist.owner.name}](${playlist.owner.url})`, inline:true },
 				{ name: 'Track Count:', value: `${playlist.tracksCount}`, inline: true },
 			)
-			.setThumbnail(playlist.thumbnail.url)
-			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
+			.setThumbnail(playlist.thumbnail.url);
+			embed.setFooter({ text: `Added by: ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
 	},
 	spotifyAlbum: (embed, album, interaction) => {
 		embed.setColor(hex.spotify);
@@ -53,8 +53,8 @@ module.exports.editEmbed = {
 				{ name: 'Artist:', value: `[${album.artists[0].name}](${album.artists[0].url})`, inline:true },
 				{ name: 'Track Count:', value: `${album.tracksCount}`, inline: true },
 			)
-			.setThumbnail(album.thumbnail.url)
-			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
+			.setThumbnail(album.thumbnail.url);
+		embed.setFooter({ text: `Added by: ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
 	},
 	soundcloudPlaylist: (embed, playlist, interaction) => {
 		embed.setColor(hex.soundcloud);
@@ -63,8 +63,8 @@ module.exports.editEmbed = {
 				{ name: 'Playlist:', value: `[${playlist.name}](${playlist.url})`, inline: true },
 				{ name: 'Owner:', value: `[${playlist.user.name}](${playlist.user.url})`, inline:true },
 				{ name: 'Track Count:', value: `${playlist.tracksCount}`, inline: true },
-			)
-			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
+			);
+		embed.setFooter({ text: `Added by: ${interaction.user.username}`, iconURL: interaction.user.displayAvatarURL() });
 	},
 	pause: (embed, inteaction) => {
 		embed.setColor(hex.pause);
