@@ -5,7 +5,7 @@ const { editEmbed } = require('../src/utils/embeds');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
-		.setDescription('View Concorde Cafe\'s commands.'),
+		.setDescription('View Barbara\'s commands.'),
 	async execute(interaction) {
 		const embed = new MessageEmbed();
 		editEmbed.help(embed, interaction);

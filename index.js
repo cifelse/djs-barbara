@@ -1,8 +1,8 @@
 // Get requirements for bot to work
 const fs = require('fs');
-const { Client, Collection, Intents, MessageEmbed } = require('discord.js');
+const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
-const { editEmbed } = require('./src/utils/embeds');
+const handleError = require('./src/utils/error-handling');
 
 // Create client instance
 const client = new Client({ intents: [
@@ -24,39 +24,24 @@ for (const file of commandFiles) {
 // When client is ready, run code below
 client.once('ready', c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
-	c.user.setPresence({ activities: [{ name: 'Concorde Cafe Music.', type:'LISTENING' }] });
+	c.user.setPresence({ activities: [{ name: 'to Concorde Chill Bar', type:'LISTENING' }] });
 });
 
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
-
-	if (interaction.member.roles.cache.has('884351522023014421') || 
-		interaction.member.roles.cache.has('867780196374151188') ||
-		interaction.member.roles.cache.has('894436955264278558') ||
-		interaction.member.roles.cache.has('917686227539464192') ||
-		interaction.member.roles.cache.has('893745856719757332')) {
 		
-		const command = client.commands.get(interaction.commandName);
-		if (!command) return;
+	const command = client.commands.get(interaction.commandName);
+	if (!command) return;
 
-		try {
-			interaction.deferReply();
-			await command.execute(interaction);
-		}
-		catch (error) {
-			console.error('Index Error:', error);
-			const embed = new MessageEmbed();
-			editEmbed.error(embed);
-			await interaction.followUp({ embeds: [embed] });
-		}
-	}
-	else {
-		const embed = new MessageEmbed();
-		editEmbed.noRole(embed);
-		await interaction.reply({ embeds: [embed] });
-		return;
-	}
+	await interaction.deferReply();
 
+	try {
+		await command.execute(interaction);
+	}
+	catch (error) {
+		const handledError = handleError(error);
+		await interaction.followUp({ embeds: [handledError] });
+	}
 });
 
 client.login(token);

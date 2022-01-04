@@ -1,9 +1,8 @@
 const { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
 const play = require('play-dl');
 const { getQueue } = require('./queue-system');
-const { editEmbed } = require('./utils/embeds');
 const { playMessage } = require('./utils/play-message');
+const handleError = require('./utils/error-handling');
 
 module.exports.playMusic = async (interaction) => {
 	// Refresh token if expired
@@ -28,14 +27,8 @@ module.exports.playMusic = async (interaction) => {
 	// Get song audio
 	let song, stream;
 	if (!songs[guildQueue.position].title) {
-		[song] = await play.search(songs[guildQueue.position].sp, { limit:1 });
-		stream = await play.stream(song.url)
-		.catch(async (error) => {
-			console.error(error);
-			const song2 = await play.search(songs[guildQueue.position].song, { limit:2 });
-			stream = await play.stream(song2[1].url);
-			return stream;
-		});
+		[song] = await play.search(songs[guildQueue.position].song, { limit:1 });
+		stream = await play.stream(song.url);
 	}
 	else {
 		stream = await play.stream(songs[guildQueue.position].url);
@@ -59,7 +52,7 @@ module.exports.playMusic = async (interaction) => {
 
 	// Player State Checker
 	player.on('stateChange', async (oldState, newState) => {
-		console.log(`Switch transitioned from ${oldState.status} to ${newState.status}`);
+		console.log(`Barbara transitioned from ${oldState.status} to ${newState.status}`);
 
 		if (oldState.status === 'buffering' && newState.status === 'playing') {
 			playMessage(interaction, songs[guildQueue.position]);
@@ -71,14 +64,10 @@ module.exports.playMusic = async (interaction) => {
 		}
 	});
 
+	// Player Error Handler
 	player.on('error', error => {
-		console.error('Player Error:', error);
-		if (error === 'Invalid URL') {
-			const embed = new MessageEmbed();
-			editEmbed.invalidUrl(embed);
-			interaction.channel.send({ embeds:[embed] });
-			return;
-		}
+		const handledError = handleError(error);
+		interaction.channel.send({ embeds:[handledError] });
 		this.playMusic(interaction);
 	});
 };

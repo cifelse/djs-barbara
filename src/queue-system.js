@@ -41,9 +41,9 @@ module.exports = {
 		for (let i = guildQueue.position; i < songs.length; i++) {
 			const track = songs[i];
 			if (!track.title) {
-				if (i === guildQueue.position) embed.addField('Now Playing: ', `[${track.sp}](${track.url})`);
-				else if (i === guildQueue.position + 1) embed.addField('Next Song:', `[${track.sp}](${track.url})`);
-				else embed.addField(`${i + 1}.`, `[${track.sp}](${track.url})`);
+				if (i === guildQueue.position) embed.addField('Now Playing: ', `[${track.song}](${track.url})`);
+				else if (i === guildQueue.position + 1) embed.addField('Next Song:', `[${track.song}](${track.url})`);
+				else embed.addField(`${i + 1}.`, `[${track.song}](${track.url})`);
 			}
 			else if (!track.song) {
 				if (i === guildQueue.position) embed.addField('Now Playing: ', `[${track.title}](${track.url})`);
@@ -72,6 +72,9 @@ module.exports = {
 	},
 	removeSong: (guild, position) => {
 		const guildQueue = queue.get(guild);
+
+		if (!guildQueue.songs[position]) return null;
+
 		return guildQueue.songs.splice(position, 1);
 	},
 	getNowPlaying: async (interaction, guild) => {

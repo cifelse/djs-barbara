@@ -6,7 +6,7 @@ module.exports.editEmbed = {
 		embed.setColor(hex.default);
 		embed.setTitle('Now Playing');
 		if (!song.title) {
-			[song] = await play.search(song.sp, { limit:1 });
+			[song] = await play.search(song.song, { limit:1 });
 			embed.setDescription(`[${song.title}](${song.url})`);
 		}
 		else {
@@ -18,7 +18,7 @@ module.exports.editEmbed = {
 		embed.setColor(hex.default)
 		.setTitle('Added To Queue');
 		if (!search.title) {
-			embed.setDescription(`[${search.sp}](${search.url})`);
+			embed.setDescription(`[${search.song}](${search.url})`);
 		}
 		else {
 			embed.setDescription(`[${search.title}](${search.url})`);
@@ -51,18 +51,28 @@ module.exports.editEmbed = {
 			.setFields(
 				{ name: 'Album:', value: `[${album.name}](${album.url})`, inline: true },
 				{ name: 'Artist:', value: `[${album.artists[0].name}](${album.artists[0].url})`, inline:true },
-				{ name: 'Track Count:', value: `${album.trackCount}`, inline: true },
+				{ name: 'Track Count:', value: `${album.tracksCount}`, inline: true },
 			)
 			.setThumbnail(album.thumbnail.url)
 			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
 	},
+	soundcloudPlaylist: (embed, playlist, interaction) => {
+		embed.setColor(hex.soundcloud);
+		embed.setTitle('Soundcloud Playlist Added')
+			.setFields(
+				{ name: 'Playlist:', value: `[${playlist.name}](${playlist.url})`, inline: true },
+				{ name: 'Owner:', value: `[${playlist.user.name}](${playlist.user.url})`, inline:true },
+				{ name: 'Track Count:', value: `${playlist.tracksCount}`, inline: true },
+			)
+			.setFooter(`Added by ${interaction.user.username}`, interaction.user.displayAvatarURL());
+	},
 	pause: (embed, inteaction) => {
 		embed.setColor(hex.pause);
-		embed.setDescription(`Concorde Cafe has been paused by ${inteaction.member}.`);
+		embed.setDescription(`Barbara has been paused by ${inteaction.member}.`);
 	},
 	resume: (embed, interaction) => {
 		embed.setColor(hex.default);
-		embed.setDescription(`Concorde Cafe has been resumed by ${interaction.member}`);
+		embed.setDescription(`Barbara has been resumed by ${interaction.member}`);
 	},
 	skip: (embed, interaction) => {
 		embed.setColor(hex.skip);
@@ -70,7 +80,7 @@ module.exports.editEmbed = {
 	},
 	clear: (embed, interaction) => {
 		embed.setColor(hex.clear);
-		embed.setDescription(`Concorde Cafe has been stopped by ${interaction.member}`);
+		embed.setDescription(`Barbara has been stopped by ${interaction.member}`);
 	},
 	shuffle: (embed, interaction) => {
 		embed.setColor(hex.shuffle);
@@ -85,19 +95,19 @@ module.exports.editEmbed = {
 		embed.setDescription(`Loop has been removed by ${interaction.member}`);
 	},
 	disconnect: (embed, interaction) => {
-		embed.setDescription(`Concorde Cafe has been disconnected by ${interaction.member}`);
+		embed.setDescription(`Barbara has been disconnected by ${interaction.member}`);
 	},
 	userNotConnected: (embed) => {
 		embed.setColor(hex.error);
-		embed.addField('You are not in a voice channel', 'Connect to a voice channel to use Concorde Cafe.', true);
+		embed.addField('You are not in a voice channel', 'Connect to a voice channel to use Barbara.', true);
 	},
 	botNotConnected: (embed) => {
 		embed.setColor(hex.error);
-		embed.addField('Concorde Cafe is not connected to a voice channel', 'Use `/play` to connect Concorde Cafe.');
+		embed.addField('Barbara is not connected to a voice channel', 'Use `/play` to connect Barbara.');
 	},
 	invalidUrl: (embed) => {
 		embed.setColor(hex.error);
-		embed.addField('Invalid URL', 'Concorde Cafe does not support the URL provided.', true);
+		embed.addField('Invalid URL', 'Barbara does not support the URL provided.', true);
 	},
 	error: (embed) => {
 		embed.setColor(hex.error);
@@ -108,18 +118,20 @@ module.exports.editEmbed = {
 		embed.setDescription('No song is currently playing.');
 	},
 	removeSong: (embed, song) => {
-		embed.setColor(hex.clear);
+		if (!song) {
+			embed.setColor(hex.error);
+			embed.setDescription('There is no song in this position');
+			return;
+		}
+
 		[song] = song;
-		if (!song.sp) {
-			embed.setDescription(`${song.title} has been removed from queue`);
+		embed.setColor(hex.clear);
+		if (!song.song) {
+			embed.setDescription(`\`${song.title}\` has been removed from queue`);
 		}
 		else {
-			embed.setDescription(`${song.sp} has been removed from queue`);
+			embed.setDescription(`\`${song.song}\` has been removed from queue`);
 		}
-	},
-	noRole: (embed) => {
-		embed.setColor(hex.error);
-		embed.setDescription('You are not an Authorized Personnel. 🛑');
 	},
 	help: (embed) => {
 		embed.setColor(hex.help);
@@ -131,20 +143,18 @@ module.exports.editEmbed = {
 			\`/pause\`: Pauses song from playing. \n
 			\`/skip\`: Skips current track. \n
 			\`/stop\`: Stops the queue. \n
-			\`/disconnect\`: Disconnects Concorde Cafe from the voice channel. \n
+			\`/disconnect\`: Disconnects Barbara from the voice channel. \n
 			\`/np\`: Show currently playing song. \n
 			\`/loop\`: Loops the queue. \n
 			\`/remove\`: Removes a song from queue. \n
 		`);
 	},
-	eligible: (embed, interaction) => {
-		if (interaction.member.roles.cache.has('884351522023014421') || 
-			interaction.member.roles.cache.has('867780196374151188') ||
-			interaction.member.roles.cache.has('894436955264278558') ||
-			interaction.member.roles.cache.has('917686227539464192') ||
-			interaction.member.roles.cache.has('893745856719757332')) {
-				embed.setColor(hex.default);
-				embed.setDescription('You are verified. Show the passengers some love by giving some good music. ✈️');
-		}
+	unviewable: (embed) => {
+		embed.setColor(hex.error);
+		embed.setDescription('This playlist type is unviewable');
+	},
+	timeout: (embed) => {
+		embed.setColor(hex.error);
+		embed.setDescription('Connection Timeout.');
 	},
 };
