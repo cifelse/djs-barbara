@@ -7,7 +7,7 @@ module.exports = {
 		if (!voiceChannel) {
 			const embed = new MessageEmbed();
 			editEmbed.userNotConnected(embed);
-			interaction.followUp({ embeds: [embed] });
+			interaction.reply({ embeds: [embed] });
 			return true;
 		}
 		return false;
@@ -16,7 +16,7 @@ module.exports = {
 		if (!connection) {
 			const embed = new MessageEmbed();
 			editEmbed.botNotConnected(embed);
-			interaction.followUp({ embeds: [embed] });
+			interaction.reply({ embeds: [embed] });
 			return true;
 		}
 		return false;

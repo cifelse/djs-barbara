@@ -5,10 +5,10 @@ const { editEmbed } = require('../src/utils/embeds');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
-		.setDescription('View Barbara\'s commands.'),
+		.setDescription('View commands.'),
 	async execute(interaction) {
 		const embed = new MessageEmbed();
 		editEmbed.help(embed, interaction);
-		await interaction.followUp({ embeds: [embed] });
+		await interaction.reply({ embeds: [embed] });
 	},
 };

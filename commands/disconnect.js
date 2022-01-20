@@ -8,7 +8,7 @@ const { userNotConntected, botNotConnected } = require('../src/utils/not-connect
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('disconnect')
-		.setDescription('Disconnects Barbara from the voice channel.'),
+		.setDescription('Disconnects from the voice channel.'),
 	async execute(interaction) {
 		const connection = getVoiceConnection(interaction.guild.id);
 		if (userNotConntected(interaction)) return;
@@ -20,6 +20,6 @@ module.exports = {
 
 		const embed = new MessageEmbed();
 		editEmbed.disconnect(embed, interaction);
-		await interaction.followUp({ embeds: [embed] });
+		await interaction.reply({ embeds: [embed] });
 	},
 };

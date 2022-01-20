@@ -1,8 +1,9 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageButton, MessageActionRow } = require('discord.js');
 const { editEmbed } = require('./utils/embeds');
-const hex = require('./utils/hex-values.json');
+const hex = require('../src/utils/hex-values.json');
 
 const queue = new Map();
+let initial = 0;
 
 module.exports = {
 	setQueue: (guild, connection) => {
@@ -28,43 +29,18 @@ module.exports = {
 		guildQueue.position = 0;
 		return;
 	},
-	presentQueue: (guild) => {
-		const embed = new MessageEmbed();
-		const guildQueue = queue.get(guild);
-		const songs = guildQueue.songs;
-		embed.setColor(hex.default);
-		embed.setTitle('Queue');
-		if (!songs[0]) {
-			embed.setDescription('Queue is empty');
-			return embed;
-		}
-		for (let i = guildQueue.position; i < songs.length; i++) {
-			const track = songs[i];
-			if (!track.title) {
-				if (i === guildQueue.position) embed.addField('Now Playing: ', `[${track.song}](${track.url})`);
-				else if (i === guildQueue.position + 1) embed.addField('Next Song:', `[${track.song}](${track.url})`);
-				else embed.addField(`${i + 1}.`, `[${track.song}](${track.url})`);
-			}
-			else if (!track.song) {
-				if (i === guildQueue.position) embed.addField('Now Playing: ', `[${track.title}](${track.url})`);
-				else if (i === guildQueue.position + 1) embed.addField('Next Song:', `[${track.title}](${track.url})`);
-				else embed.addField(`${i + 1}.`, `[${track.title}](${track.url})`);
-			}
-		}
-		return embed;
-	},
 	loopQueue: (interaction) => {
 		const guildQueue = queue.get(interaction.guild.id);
 		const embed = new MessageEmbed();
 		if (guildQueue.loop === true) {
 			guildQueue.loop = false;
 			editEmbed.stopLoop(embed, interaction);
-			interaction.followUp({ embeds: [embed] });
+			interaction.reply({ embeds: [embed] });
 			return;
 		}
 		guildQueue.loop = true;
 		editEmbed.loop(embed, interaction);
-		interaction.followUp({ embeds: [embed] });
+		interaction.reply({ embeds: [embed] });
 	},
 	stopLoop: (guild) => {
 		const guildQueue = queue.get(guild);
@@ -88,6 +64,112 @@ module.exports = {
 		else {
 			await editEmbed.play(embed, songs[guildQueue.position]);
 		}
-		interaction.followUp({ embeds: [embed] });
+		interaction.reply({ embeds: [embed] });
+	},
+	presentQueue: (guild, button) => {	
+		const queueEmbed = new MessageEmbed();	
+		queueEmbed.setColor(hex.default);
+			
+		const guildQueue = queue.get(guild);
+		const songs = guildQueue.songs;
+
+		if (!songs[0]) {
+			queueEmbed.setColor(hex.error);
+			queueEmbed.setDescription('No song is currently playing.');
+			return queueEmbed;
+		}
+
+		if (button === 'first') {
+			initial = 0;
+		}
+		else if (button === 'back') {
+			initial -= 10;
+
+			if (initial <= 0) {
+				initial = 0;
+			}
+		}
+		else if (button === 'next') {
+			initial += 10;
+			if (initial >= songs.length) initial -= 10;
+		}
+		else if (button === 'last') {
+			initial = songs.length - (songs.length % 10);
+			if (initial % 10 === 0) initial = songs.length - 10;
+		}
+
+		let queueString = '';
+		let count = 0;
+
+		for (initial; initial < songs.length; initial++) {
+			count++;
+			if (count > 10) break;
+
+			if (!songs[initial]) break;
+
+			const track = songs[initial];
+			if (initial === guildQueue.position) queueString += `${initial + 1}. [${track.song}](${track.url}) \`Now Playing\`\n`;
+			else queueString += `${initial + 1}. [${track.song}](${track.url})\n`;
+		}
+
+		initial -= 10;
+
+		queueEmbed.setTitle('Queue');
+		queueEmbed.setDescription(queueString);
+
+		return queueEmbed;
+	},
+	makeQueue: (interaction, guild) => {
+		const queueEmbed = new MessageEmbed();		
+		queueEmbed.setColor(hex.default);
+
+		const queueButtons = new MessageActionRow();
+
+		const firstButton = new MessageButton();
+		firstButton.setCustomId('first');
+		firstButton.setEmoji('⏮️');
+		firstButton.setStyle('SECONDARY');
+
+		const backButton = new MessageButton();
+		backButton.setCustomId('back');
+		backButton.setEmoji('◀️');
+		backButton.setStyle('SECONDARY');
+
+		const nextButton = new MessageButton();
+		nextButton.setCustomId('next');
+		nextButton.setEmoji('▶️');
+		nextButton.setStyle('SECONDARY');
+
+		const lastButton = new MessageButton();
+		lastButton.setCustomId('last');
+		lastButton.setEmoji('⏭️');
+		lastButton.setStyle('SECONDARY');
+
+		queueButtons.addComponents(firstButton, backButton, nextButton, lastButton);
+
+		const guildQueue = queue.get(guild);
+		const songs = guildQueue.songs;
+		
+		if (!songs[0]) {
+			queueEmbed.setColor(hex.error);
+			queueEmbed.setDescription('No song is currently playing.');
+			interaction.reply({ embeds: [queueEmbed] });
+			return;
+		}
+
+		let queueString = '';
+
+		for (let i = 0; i < 10; i++) {
+			if (!songs[i]) break;
+
+			const track = songs[i];
+			if (i === guildQueue.position) queueString += `${i + 1}. [${track.song}](${track.url}) \`Now Playing\`\n`;
+			else queueString += `${i + 1}. [${track.song}](${track.url})\n`;
+		}
+
+		queueEmbed.setTitle('Queue');
+		queueEmbed.setDescription(queueString);
+
+		interaction.reply({ embeds: [queueEmbed], components: [queueButtons] });
 	},
 };

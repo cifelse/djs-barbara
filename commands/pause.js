@@ -18,6 +18,6 @@ module.exports = {
 		
 		const embed = new MessageEmbed();
 		editEmbed.pause(embed, interaction);
-		await interaction.followUp({ embeds: [embed] });
+		await interaction.reply({ embeds: [embed] });
 	},
 };

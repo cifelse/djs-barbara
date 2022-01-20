@@ -26,7 +26,7 @@ module.exports.playMusic = async (interaction) => {
 	
 	// Get song audio
 	let song, stream;
-	if (!songs[guildQueue.position].title) {
+	if (songs[guildQueue.position].platform === 'sp') {
 		[song] = await play.search(songs[guildQueue.position].song, { limit:1 });
 		stream = await play.stream(song.url);
 	}
@@ -52,7 +52,7 @@ module.exports.playMusic = async (interaction) => {
 
 	// Player State Checker
 	player.on('stateChange', async (oldState, newState) => {
-		console.log(`Barbara transitioned from ${oldState.status} to ${newState.status}`);
+		console.log(`Switch transitioned from ${oldState.status} to ${newState.status}`);
 
 		if (oldState.status === 'buffering' && newState.status === 'playing') {
 			playMessage(interaction, songs[guildQueue.position]);
