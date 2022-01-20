@@ -25,7 +25,7 @@ for (const file of commandFiles) {
 // When client is ready, run code below
 client.once('ready', c => {
 	console.log(`Ready! Logged in as ${c.user.tag}`);
-	c.user.setPresence({ activities: [{ name: '/help', type:'LISTENING' }] });
+	c.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 });
 
 client.on('interactionCreate', async interaction => {
