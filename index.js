@@ -4,6 +4,7 @@ const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 const handleError = require('./src/utils/error-handling');
 const { presentQueue } = require('./src/queue-system');
+const { enterGiveaway } = require('./src/utils/giveaway-handler');
 
 // Create client instance
 const client = new Client({ intents: [
@@ -43,9 +44,15 @@ client.on('interactionCreate', async interaction => {
 	}
 
 	if (interaction.isButton()) {
-		const editedQueue = presentQueue(interaction.guildId, interaction.customId);
-		if (!editedQueue.title) interaction.update({ embeds:[editedQueue], components: [] });
-		else interaction.update({ embeds:[editedQueue] });
+		if (interaction.customId === 'first' || interaction.customId === 'back' || interaction.customId === 'next' || interaction.customId === 'last') {
+			const editedQueue = presentQueue(interaction.guildId, interaction.customId);
+			if (!editedQueue.title) interaction.update({ embeds:[editedQueue], components: [] });
+			else interaction.update({ embeds:[editedQueue] });
+		}
+
+		if (interaction.customId === 'enter') {
+			enterGiveaway(interaction);
+		}
 	}
 });
 
