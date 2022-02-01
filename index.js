@@ -25,7 +25,7 @@ for (const file of commandFiles) {
 
 // When client is ready, run code below
 client.once('ready', c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
+	console.log(`Barbara: I'm Ready! Logged in as ${c.user.tag}`);
 	c.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 });
 
@@ -56,14 +56,17 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
+// Error Handling
 client.on('error', error => {
-	console.error(error);
-}).on('shardError', error => {
-	console.error('A websocket connection encountered an error:', error);
+	console.error('Barbara encountered an error:', error);
+});
+
+client.on('shardError', error => {
+	console.error('Barbara encountered a websocket connection error:', error);
 });
 
 process.on('unhandledRejection', error => {
-	console.error('Unhandled promise rejection:', error);
+	console.error('Barbara encountered an unhandled promise rejection:', error);
 });
 
 client.login(token);

@@ -20,7 +20,7 @@ module.exports = {
 			.setRequired(true)),
 	async execute(interaction) {
 		const query = interaction.options.getString('query');
-		console.log(`Query: ${query}`);
+		console.log(`Barbara Query: ${query}`);
 		const embed = new MessageEmbed();
 
 		if (userNotConntected(interaction)) return;

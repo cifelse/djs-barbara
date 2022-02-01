@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { ChannelType } = require('discord-api-types/v9');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const ms = require('ms');
 const { startGiveaway, endGiveaway } = require('../src/utils/giveaway-handler');
 
 module.exports = {
@@ -45,8 +46,17 @@ module.exports = {
 		if (!all) all = 'off';
 		if (!channel) channel = 'off';
 
+		// Check for valid Duration
+		const validDuration = /^\d+(s|m|h|d)$/;
+		if (!validDuration.test(duration)) {
+			await interaction.reply({ content: 'You entered an invalid duration', ephemeral: true });
+			return;
+		}
+
+		const endsOn = new Date(Date.now() + ms(duration));
+
 		// Gather all Giveaway Details
-		const details = { title, winnerCount, duration, multiplier, all, channel };
+		const details = { title, winnerCount, duration, endsOn, multiplier, all, channel };
 
 		// Create Giveaway Embed
 		const giveawayEmbed = new MessageEmbed();
@@ -63,6 +73,6 @@ module.exports = {
 		
 		setTimeout(() => {
 			endGiveaway(interaction, message);
-		}, 10000);
+		}, ms(duration));
 	},
 };

@@ -3,12 +3,11 @@ const { MessageActionRow, MessageEmbed } = require('discord.js');
 let participants = [];
 let entries = 0;
 
-module.exports = {
-	startGiveaway: (embed, giveaway, interaction) => {
+	function startGiveaway(embed, giveaway, interaction) {
 		embed.setColor('#80A3FF')
 			.setTitle(giveaway.title)
 			.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
-			.setDescription(`Click 🍷 to enter the giveaway!\n**Duration: ${giveaway.duration}**\n`)
+			.setDescription(`Click 🍷 to enter the giveaway!\n**Duration: ${giveaway.duration}** (Ends <t:${Math.floor(giveaway.endsOn.getTime() / 1000)}:R>)\n`)
 			.setFooter({ text: `Number of Winners: ${giveaway.winnerCount}` })
 			.setTimestamp();
 
@@ -16,8 +15,8 @@ module.exports = {
 			else embed.addField('_ _\nRequirements', '<@&893745856719757332>', true);
 
 			if (giveaway.multiplier === 'on') embed.addField('_ _\nMultipliers', '<@&893745856719757332> + 99999', true);
-	},
-	enterGiveaway: (interaction) => {
+	}
+	function enterGiveaway(interaction) {
 		// Check if the participant is a bot
 		if (interaction.user.bot) return;
 		// Check for duplicates in participants
@@ -40,8 +39,8 @@ module.exports = {
 			row.addComponents(newButton);
 			interaction.update({ embeds:[embed], components: [row] });	
 		}
-	},
-	endGiveaway: (interaction, message) => {
+	}
+	function endGiveaway(interaction, message) {
 		participants = [];
 		entries = 0;
 
@@ -55,5 +54,6 @@ module.exports = {
 		const endEmbed = new MessageEmbed();
 		endEmbed.setTitle('the end na');
 		interaction.channel.send({ embeds: [endEmbed] });
-	},
-};
+	}
+
+module.exports = { startGiveaway, enterGiveaway, endGiveaway };

@@ -23,4 +23,4 @@ The music bot works by operating the command panel of Discord by typing `/` on t
 
 ## Running Barbara locally
 1. Open CMD and run `npm i`
-2. run `npm start`
+2. run `node .`
