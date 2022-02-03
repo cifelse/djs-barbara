@@ -42,7 +42,6 @@ client.on('interactionCreate', async interaction => {
 			await interaction.channel.send({ embeds: [handledError] });
 		}
 	}
-
 	if (interaction.isButton()) {
 		if (interaction.customId === 'first' || interaction.customId === 'back' || interaction.customId === 'next' || interaction.customId === 'last') {
 			const editedQueue = presentQueue(interaction.guildId, interaction.customId);

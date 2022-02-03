@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { ChannelType } = require('discord-api-types/v9');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const ms = require('ms');
+const { scheduleJob } = require('node-schedule');
 const { startGiveaway, endGiveaway } = require('../src/utils/giveaway-handler');
 
 module.exports = {
@@ -22,7 +23,7 @@ module.exports = {
 			.setDescription('Set multiplier to on or off')
 			.addChoices([['on', 'on'], ['off', 'off']])
 			.setRequired(false))
-		.addStringOption(option => option.setName('all')
+		.addStringOption(option => option.setName('for all')
 			.setDescription('Include everyone in the giveaway')
 			.addChoices([['on', 'on'], ['off', 'off']])
 			.setRequired(false))
@@ -42,21 +43,22 @@ module.exports = {
 		// Set default values for Giveaway Details
 		if (!winnerCount) winnerCount = 1;
 		if (!duration) duration = '24h';
-		if (!multiplier) multiplier = 'on';
+		if (!multiplier) multiplier = 'off';
 		if (!all) all = 'off';
 		if (!channel) channel = 'off';
 
 		// Check for valid Duration
 		const validDuration = /^\d+(s|m|h|d)$/;
 		if (!validDuration.test(duration)) {
-			await interaction.reply({ content: 'You entered an invalid duration', ephemeral: true });
+			await interaction.reply({ content: 'You entered an invalid duration' });
 			return;
 		}
 
+		const createdOn = new Date();
 		const endsOn = new Date(Date.now() + ms(duration));
 
 		// Gather all Giveaway Details
-		const details = { title, winnerCount, duration, endsOn, multiplier, all, channel };
+		const details = { title, winnerCount, duration, endsOn, createdOn, multiplier, all, channel };
 
 		// Create Giveaway Embed
 		const giveawayEmbed = new MessageEmbed();
@@ -65,14 +67,15 @@ module.exports = {
 		row.addComponents(
 			new MessageButton()
 				.setCustomId('enter')
-				.setLabel('🍷')
+				.setLabel('🍷 0')
 				.setStyle('PRIMARY'),
 		);
 
 		const message = await interaction.reply({ embeds: [giveawayEmbed], components: [row], fetchReply: true });
+		console.log('Scheduling job for', endsOn);
 		
-		setTimeout(() => {
-			endGiveaway(interaction, message);
-		}, ms(duration));
+		scheduleJob(endsOn, async () => {
+			endGiveaway(interaction, message, details);
+		});
 	},
 };
