@@ -4,7 +4,8 @@ const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 const handleError = require('./src/utils/error-handling');
 const { presentQueue } = require('./src/queue-system');
-const { enterGiveaway } = require('./src/utils/giveaway-handler');
+const { enterGiveaway, startGiveaway, scheduleGiveaway } = require('./src/utils/giveaway-handler');
+const { checkOngoing } = require('./src/database/database-handler');
 
 // Create client instance
 const client = new Client({ intents: [
@@ -24,18 +25,22 @@ for (const file of commandFiles) {
 }
 
 // When client is ready, run code below
-client.once('ready', c => {
-	console.log(`Barbara: I'm Ready! Logged in as ${c.user.tag}`);
-	c.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
+client.once('ready', async bot => {
+	console.log(`Barbara: I'm Ready! Logged in as ${bot.user.tag}`);
+	bot.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
+	
+	const giveaways = checkOngoing();
+	console.log(giveaways);
+	// scheduleGiveaway(client, details);
 });
 
 client.on('interactionCreate', async interaction => {
 	if (interaction.isCommand()) {
 		const command = client.commands.get(interaction.commandName);
 		if (!command) return;
-	
+		
 		try {
-			await command.execute(interaction);
+			await command.execute(interaction, client);
 		}
 		catch (error) {
 			const handledError = handleError(error);

@@ -1,5 +1,7 @@
+const { MessageEmbed } = require('discord.js');
 const play = require('play-dl');
 const hex = require('./hex-values.json');
+const { hangar } = require('./ids.json');
 
 module.exports.editEmbed = {
 	play: async (embed, song) => {
@@ -147,5 +149,25 @@ module.exports.editEmbed = {
 	timeout: (embed) => {
 		embed.setColor(hex.error);
 		embed.setDescription('Connection Timeout.');
+	},
+	giveawayEmbed: (interaction, giveawayDetails) => {
+		const giveawayEmbed = new MessageEmbed();
+		giveawayEmbed.setColor('#80A3FF')
+		.setTitle(giveawayDetails.title)
+		.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
+		.setDescription('You know what it is, **Click** 🍷 **to enter the giveaway!**\n')
+		.addFields(
+			{ name: '_ _\nDuration', value: `<t:${Math.floor(giveawayDetails.endsOn.getTime() / 1000)}:R>`, inline: true },
+			{ name: '_ _\nWinner/s', value: `${giveawayDetails.winnerCount}`, inline: true },
+		)
+		.setFooter({ text: `${interaction.id}` })
+		.setTimestamp();
+
+		if (giveawayDetails.all === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
+		else giveawayEmbed.addField('_ _\nRequirement', 'At least <@&893745856719757332> (Level 5)');
+
+		if (giveawayDetails.multiplier === 'on') giveawayEmbed.addField('_ _\nMultipliers', `<@&${hangar.roles.head}> + 4\n<@&${hangar.roles.core}> + 3\n<@&${hangar.roles.aircraftEngineers}> + 2`);
+		
+		return giveawayEmbed;
 	},
 };

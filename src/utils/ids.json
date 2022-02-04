@@ -2,6 +2,9 @@
     "concorde": {
         "roles": {
 
+        },
+        "channels": {
+            "giveaway": "894593504259477565"
         }
     },
     "hangar": {
@@ -9,6 +12,9 @@
             "head": "893745727832985600",
             "core": "919929086443413534",
             "aircraftEngineers": "893745856719757332"
+        },
+        "channels": {
+            "barbaraTest": "933262368664858645"
         }
     }
 }
