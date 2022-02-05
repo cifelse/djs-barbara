@@ -64,7 +64,7 @@ function insertParticipant(giveawayId, discordId, username, discriminator) {
     });
 }
 
-function getParticipants() {
+function getParticipants(callback) {
 	const connection = mysql.createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
@@ -82,6 +82,7 @@ function getParticipants() {
 			console.log('Barbara: Got all the passengers!');
 			console.log(result);
 			connection.end();
+            callback(result);
         });
     });
 }
@@ -107,6 +108,27 @@ function retrieveParticipants(giveawayId) {
     });
 }
 
+function checkDuplicateParticipant(giveawayId, participantId, callback) {
+    const con = mysql.createConnection({
+        host: 'eu02-sql.pebblehost.com',
+        user: 'customer_253110_giveaways',
+        password: 'LwtF8qJ6lEiEC3H!@KFm',
+        database: 'customer_253110_giveaways',
+    });
+
+    con.connect(err => {
+        if (err) throw err;
+        
+        const sql = `SELECT * FROM participants WHERE giveaway_id = ${giveawayId} AND discord_id = ${participantId}`;
+
+        con.query(sql, (err, res) => {
+            if (err) throw err;
+            con.end();
+			callback(res);
+        });
+    });
+}
+
 function getGiveaway(giveawayId) {
 	const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
@@ -128,7 +150,7 @@ function getGiveaway(giveawayId) {
     });
 }
 
-function checkOngoing() {
+function checkOngoing(scheduleGiveaway) {
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
@@ -141,14 +163,42 @@ function checkOngoing() {
         
         const sql = 'SELECT * FROM giveaways WHERE ongoing = 1';
 
-        con.query(sql, async (err, res) => {
+        con.query(sql, (err, res) => {
             if (err) throw err;
             con.end();
-			const giveaways = await res;
-			console.log(giveaways);
-			return giveaways;
+            console.log(res);
         });
     });
 }
 
-module.exports = { saveGiveaway, insertParticipant, getParticipants, retrieveParticipants, getGiveaway, checkOngoing };
+function getEntries(giveawayId, callback) {
+    const con = mysql.createConnection({
+        host: 'eu02-sql.pebblehost.com',
+        user: 'customer_253110_giveaways',
+        password: 'LwtF8qJ6lEiEC3H!@KFm',
+        database: 'customer_253110_giveaways',
+    });
+
+    con.connect(err => {
+        if (err) throw err;
+        
+        const sql = `SELECT num_entries FROM giveaways WHERE giveaway_id = ${giveawayId}`;
+
+        con.query(sql, (err, res) => {
+            if (err) throw err;
+            con.end();
+            callback(res);
+        });
+    });
+}
+
+module.exports = { 
+    saveGiveaway, 
+    insertParticipant, 
+    getParticipants, 
+    retrieveParticipants, 
+    checkDuplicateParticipant, 
+    getGiveaway, 
+    checkOngoing,
+    getEntries,
+};

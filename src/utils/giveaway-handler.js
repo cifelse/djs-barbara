@@ -3,9 +3,9 @@ const { scheduleJob } = require('node-schedule');
 const { hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const ms = require('ms');
-const { saveGiveaway, getParticipants, insertParticipant, getGiveaway } = require('../database/database-handler');
+const { saveGiveaway, getParticipants, insertParticipant, getGiveaway, checkDuplicateParticipant, getEntries } = require('../database/database-handler');
 
-async function startGiveaway(interaction, client, details) {
+async function startGiveaway(interaction, details) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
 	const row = new MessageActionRow();
 	row.addComponents(
@@ -23,12 +23,67 @@ async function startGiveaway(interaction, client, details) {
 	details.entries = 0;
 
 	saveGiveaway(details);
-	scheduleGiveaway(client, details.messageId);
+	scheduleGiveaway(interaction, details);
 	await interaction.reply({ content: 'Giveaway successfully launched!', ephemeral: true });
 }
 
-function scheduleGiveaway(client, giveaway) {
-	const details = getGiveaway(giveaway);
+function scheduleGiveaway(interaction, details) {
+	const { title, winnerCount, endsOn, channelId, messageId } = details;
+	console.log(details);
+	console.log('Scheduling giveaway for', endsOn);
+
+	scheduleJob(endsOn, async () => {
+		let participants;
+		getParticipants((result) => {
+			participants = result;
+		});
+		console.log(participants);
+		// const winners = determineWinners(details.participants, winnerCount);
+		// details.participants = {};
+		// details.entries = 0;
+	
+		// let winnerString = '';
+	
+		// if (winners.size === 0) {
+		// 	winnerString = 'None';
+		// }
+		// else {
+		// 	winners.forEach(winner => {
+		// 		winnerString += `<@${winner.id}> `;
+		// 	});
+		// }
+		
+		const channel = interaction.guild.channels.cache.get(hangar.channels.barbaraTest);
+		const fetchedMessages = await channel.messages.fetch();
+		const message = fetchedMessages.get(details.messageId);
+
+		const rerollButton = message.components[0].components[0].setCustomId('reroll').setLabel('Reroll').setStyle('DANGER');
+		const newEmbed = message.embeds[0];
+		newEmbed.setColor('RED');
+		newEmbed.spliceFields(0, 4, [
+			{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
+			{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
+		]);
+		
+		if (winners.size === 0) {
+			newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
+			rerollButton.setDisabled(true);
+			const newRow = new MessageActionRow();
+			newRow.addComponents(rerollButton);
+			message.edit({ embeds:[newEmbed], components: [newRow] });
+		}
+		else {
+			newEmbed.setDescription('**Giveaway has ended.** Congratulations to the winner/s! 🎉');
+			const newRow = new MessageActionRow();
+			newRow.addComponents(rerollButton);
+			message.edit({ embeds:[newEmbed], components: [newRow] });
+			channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+		}
+	});
+}
+
+function scheduleOnGoingGiveaways(client, giveaways) {
+	const details = getGiveaway(giveaways);
 	console.log(details);
 	console.log('Scheduling job for', details.end_date);
 
@@ -77,7 +132,7 @@ function scheduleGiveaway(client, giveaway) {
 	});
 }
 
-async function enterGiveaway(interaction, details) {
+async function enterGiveaway(interaction) {
 	// Check if the participant is eligible to join the giveaway
 	if (interaction.user.bot) return;
 	const eligible = interaction.member.roles.cache.some(role => {
@@ -88,22 +143,29 @@ async function enterGiveaway(interaction, details) {
 		await interaction.reply({ content: 'You are not eligible to participate in this giveaway yet.', ephemeral: true });
 		return;
 	}
+
 	// Check for duplicates in participants
-	console.log(details);
-	const duplicate = interaction.user.id in details.participants;
-	if (duplicate) {
-		await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
-		return;
-	}
-	// Add participants
-	const roles = interaction.member.roles.cache;
-	addEntries(interaction, roles, details);
-	
-	const newButton = interaction.message.components[0].components[0].setLabel(`🍷 ${details.entries}`);
-	const row = new MessageActionRow();
-	row.addComponents(newButton);
-	await interaction.update({ components: [row] });
-	await interaction.followUp({ content: 'You have successfully joined the giveaway!', ephemeral: true });
+	const messageId = interaction.message.id;
+	const participantId = interaction.user.id;
+	checkDuplicateParticipant(messageId, participantId, async (result) => {
+		if (result.length >= 1) {
+			await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
+			return;
+		}
+		
+		// Add participants
+		const roles = interaction.member.roles.cache;
+		addEntries(interaction, roles);
+		getEntries(messageId, async (entries) => {
+			const entryNumber = entries[0].num_entries;
+			console.log(entries);
+			const newButton = interaction.message.components[0].components[0].setLabel(`🍷 ${entryNumber}`);
+			const row = new MessageActionRow();
+			row.addComponents(newButton);
+			await interaction.update({ components: [row] });
+			await interaction.followUp({ content: 'You have successfully joined the giveaway!', ephemeral: true });
+		});
+	});
 }
 
 function addEntries(interaction, roles) {
@@ -113,10 +175,10 @@ function addEntries(interaction, roles) {
 	if (roles.get(hangar.roles.core)) multiplier = 3;
 	if (roles.get(hangar.roles.head)) multiplier = 4;
 	const messageId = interaction.message.id;
-	const { discordId, username, discriminator } = interaction.user;
+	const { id, username, discriminator } = interaction.user;
 	
 	for (let i = 0; i < multiplier; i++) {
-		insertParticipant(messageId, discordId, username, discriminator);
+		insertParticipant(messageId, id, username, discriminator);
 	}
 }
 

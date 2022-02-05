@@ -29,8 +29,8 @@ client.once('ready', async bot => {
 	console.log(`Barbara: I'm Ready! Logged in as ${bot.user.tag}`);
 	bot.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 	
-	const giveaways = checkOngoing();
-	console.log(giveaways);
+	// const giveaways = checkOngoing();
+	// console.log(giveaways);
 	// scheduleGiveaway(client, details);
 });
 

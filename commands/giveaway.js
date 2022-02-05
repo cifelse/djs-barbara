@@ -30,7 +30,7 @@ module.exports = {
 			.setDescription('Enter the channel where you want to start the giveaway.')
 			.addChannelType(ChannelType.GuildText)
 			.setRequired(false)),
-	async execute(interaction, client) {
+	async execute(interaction) {
 		// Get Giveaway Details
 		const title = interaction.options.getString('title');
         let winnerCount = interaction.options.getInteger('winners');
@@ -59,6 +59,6 @@ module.exports = {
 		// Gather all Giveaway Details
 		const details = { title, winnerCount, duration, endsOn, multiplier, all, channelId };
 		// Confirm Giveaway
-		await startGiveaway(interaction, client, details);
+		await startGiveaway(interaction, details);
 	},
 };
