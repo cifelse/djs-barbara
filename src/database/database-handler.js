@@ -64,7 +64,7 @@ function insertParticipant(giveawayId, discordId, username, discriminator) {
     });
 }
 
-function getParticipants(callback) {
+function getParticipants(giveawayId, callback) {
 	const connection = mysql.createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
@@ -75,12 +75,11 @@ function getParticipants(callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = 'SELECT * FROM participants';
+        const sql = `SELECT * FROM participants WHERE giveaway_id = ${giveawayId}`;
     
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			console.log('Barbara: Got all the passengers!');
-			console.log(result);
 			connection.end();
             callback(result);
         });

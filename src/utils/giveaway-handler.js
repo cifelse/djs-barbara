@@ -5,6 +5,9 @@ const { editEmbed } = require('./embeds');
 const ms = require('ms');
 const { saveGiveaway, getParticipants, insertParticipant, getGiveaway, checkDuplicateParticipant, getEntries } = require('../database/database-handler');
 
+let participants = [];
+let entries = 0;
+
 async function startGiveaway(interaction, details) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
 	const row = new MessageActionRow();
@@ -22,38 +25,29 @@ async function startGiveaway(interaction, details) {
 	details.createdOn = new Date().toString();
 	details.entries = 0;
 
-	saveGiveaway(details);
+	// saveGiveaway(details);
 	scheduleGiveaway(interaction, details);
 	await interaction.reply({ content: 'Giveaway successfully launched!', ephemeral: true });
 }
 
 function scheduleGiveaway(interaction, details) {
 	const { title, winnerCount, endsOn, channelId, messageId } = details;
-	console.log(details);
 	console.log('Scheduling giveaway for', endsOn);
 
 	scheduleJob(endsOn, async () => {
-		let participants;
-		getParticipants((result) => {
-			participants = result;
-		});
-		console.log(participants);
-		// const winners = determineWinners(details.participants, winnerCount);
-		// details.participants = {};
-		// details.entries = 0;
+		const winners = determineWinners(participants, winnerCount);
+		let winnerString = '';
 	
-		// let winnerString = '';
-	
-		// if (winners.size === 0) {
-		// 	winnerString = 'None';
-		// }
-		// else {
-		// 	winners.forEach(winner => {
-		// 		winnerString += `<@${winner.id}> `;
-		// 	});
-		// }
+		if (winners.length === 0) {
+			winnerString = 'None';
+		}
+		else {
+			winners.forEach(winner => {
+				winnerString += `<@${winner.discordId}> `;
+			});
+		}
 		
-		const channel = interaction.guild.channels.cache.get(hangar.channels.barbaraTest);
+		const channel = interaction.guild.channels.cache.get(channelId);
 		const fetchedMessages = await channel.messages.fetch();
 		const message = fetchedMessages.get(details.messageId);
 
@@ -65,7 +59,7 @@ function scheduleGiveaway(interaction, details) {
 			{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
 		]);
 		
-		if (winners.size === 0) {
+		if (winners.length === 0) {
 			newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
 			rerollButton.setDisabled(true);
 			const newRow = new MessageActionRow();
@@ -88,9 +82,9 @@ function scheduleOnGoingGiveaways(client, giveaways) {
 	console.log('Scheduling job for', details.end_date);
 
 	scheduleJob(details.end_date, async () => {
-		const winners = determineWinners(details.participants, details.winnerCount);
-		details.participants = {};
-		details.entries = 0;
+		const winners = determineWinners(participants, details.winnerCount);
+		participants = [];
+		entries = 0;
 	
 		let winnerString = '';
 	
@@ -99,7 +93,7 @@ function scheduleOnGoingGiveaways(client, giveaways) {
 		}
 		else {
 			winners.forEach(winner => {
-				winnerString += `<@${winner.id}> `;
+				winnerString += `<@${winner.discord_id}> `;
 			});
 		}
 		
@@ -115,7 +109,7 @@ function scheduleOnGoingGiveaways(client, giveaways) {
 			{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
 		]);
 		
-		if (winners.size === 0) {
+		if (winners.length === 0) {
 			newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
 			rerollButton.setDisabled(true);
 			const newRow = new MessageActionRow();
@@ -133,65 +127,78 @@ function scheduleOnGoingGiveaways(client, giveaways) {
 }
 
 async function enterGiveaway(interaction) {
-	// Check if the participant is eligible to join the giveaway
-	if (interaction.user.bot) return;
-	const eligible = interaction.member.roles.cache.some(role => {
-		if (role.id === hangar.roles.aircraftEngineers || role.id === hangar.roles.core || role.id === hangar.roles.head) return true;
-		return false;
-	});
+	const eligible = await checkEligibility(interaction);
+	console.log(eligible);
 	if (!eligible) {
 		await interaction.reply({ content: 'You are not eligible to participate in this giveaway yet.', ephemeral: true });
 		return;
 	}
-
+	
 	// Check for duplicates in participants
-	const messageId = interaction.message.id;
-	const participantId = interaction.user.id;
-	checkDuplicateParticipant(messageId, participantId, async (result) => {
-		if (result.length >= 1) {
-			await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
-			return;
-		}
-		
-		// Add participants
-		const roles = interaction.member.roles.cache;
-		addEntries(interaction, roles);
-		getEntries(messageId, async (entries) => {
-			const entryNumber = entries[0].num_entries;
-			console.log(entries);
-			const newButton = interaction.message.components[0].components[0].setLabel(`🍷 ${entryNumber}`);
-			const row = new MessageActionRow();
-			row.addComponents(newButton);
-			await interaction.update({ components: [row] });
-			await interaction.followUp({ content: 'You have successfully joined the giveaway!', ephemeral: true });
-		});
-	});
+	const duplicate = participants.find(participant => participant.discordId === interaction.user.id);
+	if (duplicate) {
+		await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
+		return;
+	}
+	
+	// Add participants
+	const roles = interaction.member.roles.cache;
+	addEntries(interaction, roles);
+	
+	// Increment Entry Button Count
+	const newButton = interaction.message.components[0].components[0].setLabel(`🍷 ${entries}`);
+	const row = new MessageActionRow();
+	row.addComponents(newButton);
+	await interaction.update({ components: [row] });
+	await interaction.followUp({ content: 'You have successfully joined the giveaway!', ephemeral: true });
 }
 
 function addEntries(interaction, roles) {
+	// Check for Multiplier
+	const multiplierField = interaction.message.embeds[0].fields.find(field => field.name.includes('Multipliers'));
+	
+	// Collect Participant's info
+	const messageId = interaction.message.id;
+	const { id, username, discriminator } = interaction.user;
+	const participant = { giveawayId: messageId, discordId: id, username, discriminator };
+	
+	if (!multiplierField) {
+		participants.push(participant);
+		entries++;
+		return;
+	}
+
 	let multiplier;
 
 	if (roles.get(hangar.roles.aircraftEngineers)) multiplier = 2;
 	if (roles.get(hangar.roles.core)) multiplier = 3;
 	if (roles.get(hangar.roles.head)) multiplier = 4;
-	const messageId = interaction.message.id;
-	const { id, username, discriminator } = interaction.user;
 	
 	for (let i = 0; i < multiplier; i++) {
-		insertParticipant(messageId, id, username, discriminator);
+		participants.push(participant);
 	}
+	entries++;
+}
+
+async function checkEligibility(interaction) {
+	if (interaction.user.bot) return false;
+
+	const requirementsField = interaction.message.embeds[0].fields.find(field => field.value.includes('Free for All'));
+	if (requirementsField) return true;
+
+	const eligible = interaction.member.roles.cache.some(role => role.id === hangar.roles.aircraftEngineers || role.id === hangar.roles.core || role.id === hangar.roles.head);
+
+	return eligible;
 }
 
 function determineWinners(users, winnerCount) {
-	const participants = getParticipants();
-	console.log(participants);
-	
-	const winners = new Set();
+	const winners = [];
 	let sentinel = 0;
 
-	while (winners.size < winnerCount && sentinel < users.length) {
+	while (winners.length < winnerCount && sentinel < users.length) {
 		const random = Math.floor(Math.random() * users.length);
-		winners.add(users[random]);
+		const duplicate = winners.find(winner => winner.discordId === users[random].discordId);
+		if (!duplicate) winners.push(users[random]);
 		sentinel++;
 	}
 	return winners;

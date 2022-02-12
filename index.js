@@ -53,7 +53,6 @@ client.on('interactionCreate', async interaction => {
 			if (!editedQueue.title) interaction.update({ embeds:[editedQueue], components: [] });
 			else interaction.update({ embeds:[editedQueue] });
 		}
-
 		if (interaction.customId === 'enter') {
 			enterGiveaway(interaction);
 		}
