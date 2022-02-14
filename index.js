@@ -4,8 +4,8 @@ const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 const handleError = require('./src/utils/error-handling');
 const { presentQueue } = require('./src/queue-system');
-const { enterGiveaway, startGiveaway, scheduleGiveaway } = require('./src/utils/giveaway-handler');
-const { checkOngoing } = require('./src/database/database-handler');
+const { enterGiveaway, scheduleGiveaway, reroll } = require('./src/utils/giveaway-handler');
+const { getGiveaways } = require('./src/database/database-handler');
 
 // Create client instance
 const client = new Client({ intents: [
@@ -29,9 +29,9 @@ client.once('ready', async bot => {
 	console.log(`Barbara: I'm Ready! Logged in as ${bot.user.tag}`);
 	bot.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 	
-	// const giveaways = checkOngoing();
-	// console.log(giveaways);
-	// scheduleGiveaway(client, details);
+	getGiveaways((giveaways) => {
+		scheduleGiveaway(client, giveaways);
+	});
 });
 
 client.on('interactionCreate', async interaction => {
@@ -55,6 +55,9 @@ client.on('interactionCreate', async interaction => {
 		}
 		if (interaction.customId === 'enter') {
 			enterGiveaway(interaction);
+		}
+		if (interaction.customId === 'reroll') {
+			await reroll(interaction);
 		}
 	}
 });

@@ -12,9 +12,9 @@ function saveGiveaway(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO giveaways (title, giveaway_id, num_winners, num_entries, start_date, end_date, multiplier, strict_mode, channel_id, ongoing) VALUES ('${details.title}', '${details.messageId}', '${details.winnerCount}', '${details.entries}', '${details.createdOn}', '${details.endsOn}', '${details.multiplier}', '${details.all}', '${details.channelId}', 1)`;
+        const sql = `INSERT INTO giveaways (title, giveaway_id, num_winners, num_entries, start_date, end_date, multiplier, strict_mode, channel_id, ongoing) VALUES ('${details.title}', '${details.giveaway_id}', '${details.num_winners}', '${details.num_entries}', '${details.start_date}', '${details.end_date}', '${details.multiplier}', '${details.strict_mode}', '${details.channel_id}', 1)`;
     
-        connection.query(sql, (err, result) => {
+        connection.query(sql, (err) => {
 			if (err) throw err;
 			console.log('Barbara: I\'ve created a new giveaway!');
 			connection.end();
@@ -23,8 +23,9 @@ function saveGiveaway(details) {
 }
 
 // ENTERING A PARTICIPANT
-function insertParticipant(giveawayId, discordId, username, discriminator) {
-    
+function insertParticipant(participant) {
+    const { giveawayId, discordId, username, discriminator } = participant;
+
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
@@ -54,7 +55,7 @@ function insertParticipant(giveawayId, discordId, username, discriminator) {
 
             // Increment Entries
             sql = `UPDATE giveaways SET num_entries = num_entries + 1 WHERE giveaway_id = '${giveawayId}'`;
-            con.query(sql, err => {
+            con.query(sql, (err) => {
                 if (err) throw err;
             });
 
@@ -75,34 +76,13 @@ function getParticipants(giveawayId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT * FROM participants WHERE giveaway_id = ${giveawayId}`;
+        const sql = `SELECT * FROM participants WHERE giveaway_id = "${giveawayId}"`;
     
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			console.log('Barbara: Got all the passengers!');
 			connection.end();
             callback(result);
-        });
-    });
-}
-
-function retrieveParticipants(giveawayId) {
-    const con = mysql.createConnection({
-        host: 'eu02-sql.pebblehost.com',
-        user: 'customer_253110_giveaways',
-        password: 'LwtF8qJ6lEiEC3H!@KFm',
-        database: 'customer_253110_giveaways',
-    });
-
-    con.connect(err => {
-        if (err) throw err;
-        
-        const sql = `SELECT * FROM participants WHERE giveaway_id = ${giveawayId}`;
-
-        con.query(sql, (err, res) => {
-            if (err) throw err;
-            con.end();
-			return res;
         });
     });
 }
@@ -128,7 +108,7 @@ function checkDuplicateParticipant(giveawayId, participantId, callback) {
     });
 }
 
-function getGiveaway(giveawayId) {
+function getGiveaways(callback) {
 	const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
@@ -139,17 +119,17 @@ function getGiveaway(giveawayId) {
     con.connect(err => {
         if (err) throw err;
         
-        const sql = `SELECT * FROM giveaways WHERE giveaway_id = ${giveawayId}`;
+        const sql = 'SELECT * FROM giveaways';
 
         con.query(sql, (err, res) => {
             if (err) throw err;
             con.end();
-			return res;
+			callback(res);
         });
     });
 }
 
-function checkOngoing(scheduleGiveaway) {
+function checkOngoing() {
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
@@ -194,10 +174,9 @@ function getEntries(giveawayId, callback) {
 module.exports = { 
     saveGiveaway, 
     insertParticipant, 
-    getParticipants, 
-    retrieveParticipants, 
+    getParticipants,
     checkDuplicateParticipant, 
-    getGiveaway, 
+    getGiveaways, 
     checkOngoing,
     getEntries,
 };

@@ -2,155 +2,108 @@ const { MessageActionRow, MessageButton } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
 const { hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
-const ms = require('ms');
-const { saveGiveaway, getParticipants, insertParticipant, getGiveaway, checkDuplicateParticipant, getEntries } = require('../database/database-handler');
+const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant } = require('../database/database-handler');
 
-let participants = [];
-let entries = 0;
-
-async function startGiveaway(interaction, details) {
+async function startGiveaway(interaction, details, client) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
 	const row = new MessageActionRow();
 	row.addComponents(
 		new MessageButton()
 			.setCustomId('enter')
-			.setLabel('🍷 0')
+			.setLabel('🍷')
 			.setStyle('PRIMARY'),
 	);
-	const channel = interaction.guild.channels.cache.get(details.channelId);
+	const channel = interaction.guild.channels.cache.get(details.channel_id);
 	const message = await channel.send({ embeds: [embed], components: [row], fetchReply: true });
 
-	details.messageId = message.id;
-	details.endsOn = new Date(Date.now() + ms(details.duration)).toString();
-	details.createdOn = new Date().toString();
-	details.entries = 0;
+	details.giveaway_id = message.id;
+	details.start_date = new Date().toString();
+	details.num_entries = 0;
 
-	// saveGiveaway(details);
-	scheduleGiveaway(interaction, details);
+	saveGiveaway(details);
+	scheduleGiveaway(client, [details]);
 	await interaction.reply({ content: 'Giveaway successfully launched!', ephemeral: true });
 }
 
-function scheduleGiveaway(interaction, details) {
-	const { title, winnerCount, endsOn, channelId, messageId } = details;
-	console.log('Scheduling giveaway for', endsOn);
+function scheduleGiveaway(client, details) {
+	for (let i = 0; i < details.length; i++) {
+		const currentDate = new Date().getTime();
+		const endDate = Date.parse(details[i].end_date);
 
-	scheduleJob(endsOn, async () => {
-		const winners = determineWinners(participants, winnerCount);
-		let winnerString = '';
+		if (endDate < currentDate) continue;
+		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
+		console.log('Scheduling giveaway for', end_date);
 	
-		if (winners.length === 0) {
-			winnerString = 'None';
-		}
-		else {
-			winners.forEach(winner => {
-				winnerString += `<@${winner.discordId}> `;
+		scheduleJob(end_date, async () => {
+			getParticipants(giveaway_id, async users => {
+				const winners = determineWinners(users, num_winners);
+	
+				// Put winners in string
+				let winnerString = '';
+		
+				if (winners.length > 0) {
+					winners.forEach(winner => {
+						winnerString += `<@${winner.discord_id}> `;
+					});
+				}
+				
+				// Get channel and message to edit and announce winners
+				const channel = client.channels.cache.get(channel_id);
+				if (channel) {
+					const message = await channel.messages.fetch(giveaway_id);
+					if (message) {
+						const rerollButton = message.components[0].components[0].setCustomId('reroll').setLabel('Reroll').setStyle('DANGER');
+						const newEmbed = message.embeds[0];
+						newEmbed.setColor('RED');
+						newEmbed.setFooter({ text: `${message.id}` });
+						newEmbed.spliceFields(0, 4, [
+							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
+							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
+						]);
+						
+						if (winners.length === 0) {
+							newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
+							rerollButton.setDisabled(true);
+							const newRow = new MessageActionRow();
+							newRow.addComponents(rerollButton);
+							message.edit({ embeds:[newEmbed], components: [newRow] });
+						}
+						else {
+							newEmbed.setDescription('**Giveaway has ended.** Congratulations to the winner/s! 🎉');
+							const newRow = new MessageActionRow();
+							newRow.addComponents(rerollButton);
+							message.edit({ embeds:[newEmbed], components: [newRow] });
+							channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+						}
+					}
+				}
 			});
-		}
-		
-		const channel = interaction.guild.channels.cache.get(channelId);
-		const fetchedMessages = await channel.messages.fetch();
-		const message = fetchedMessages.get(details.messageId);
-
-		const rerollButton = message.components[0].components[0].setCustomId('reroll').setLabel('Reroll').setStyle('DANGER');
-		const newEmbed = message.embeds[0];
-		newEmbed.setColor('RED');
-		newEmbed.spliceFields(0, 4, [
-			{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
-			{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
-		]);
-		
-		if (winners.length === 0) {
-			newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
-			rerollButton.setDisabled(true);
-			const newRow = new MessageActionRow();
-			newRow.addComponents(rerollButton);
-			message.edit({ embeds:[newEmbed], components: [newRow] });
-		}
-		else {
-			newEmbed.setDescription('**Giveaway has ended.** Congratulations to the winner/s! 🎉');
-			const newRow = new MessageActionRow();
-			newRow.addComponents(rerollButton);
-			message.edit({ embeds:[newEmbed], components: [newRow] });
-			channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
-		}
-	});
-}
-
-function scheduleOnGoingGiveaways(client, giveaways) {
-	const details = getGiveaway(giveaways);
-	console.log(details);
-	console.log('Scheduling job for', details.end_date);
-
-	scheduleJob(details.end_date, async () => {
-		const winners = determineWinners(participants, details.winnerCount);
-		participants = [];
-		entries = 0;
-	
-		let winnerString = '';
-	
-		if (winners.size === 0) {
-			winnerString = 'None';
-		}
-		else {
-			winners.forEach(winner => {
-				winnerString += `<@${winner.discord_id}> `;
-			});
-		}
-		
-		const channel = client.channels.cache.get(hangar.channels.barbaraTest);
-		const fetchedMessages = await channel.messages.fetch();
-		const message = fetchedMessages.get(details.messageId);
-
-		const rerollButton = message.components[0].components[0].setCustomId('reroll').setLabel('Reroll').setStyle('DANGER');
-		const newEmbed = message.embeds[0];
-		newEmbed.setColor('RED');
-		newEmbed.spliceFields(0, 4, [
-			{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
-			{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
-		]);
-		
-		if (winners.length === 0) {
-			newEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
-			rerollButton.setDisabled(true);
-			const newRow = new MessageActionRow();
-			newRow.addComponents(rerollButton);
-			message.edit({ embeds:[newEmbed], components: [newRow] });
-		}
-		else {
-			newEmbed.setDescription('**Giveaway has ended.** Congratulations to the winner/s! 🎉');
-			const newRow = new MessageActionRow();
-			newRow.addComponents(rerollButton);
-			message.edit({ embeds:[newEmbed], components: [newRow] });
-			channel.send(`Congratulations to ${winnerString}for winning **"${details.title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
-		}
-	});
+		});
+	}
 }
 
 async function enterGiveaway(interaction) {
 	const eligible = await checkEligibility(interaction);
-	console.log(eligible);
 	if (!eligible) {
 		await interaction.reply({ content: 'You are not eligible to participate in this giveaway yet.', ephemeral: true });
 		return;
 	}
-	
+	const messageId = interaction.message.id;
+	const participantId = interaction.user.id;
+
 	// Check for duplicates in participants
-	const duplicate = participants.find(participant => participant.discordId === interaction.user.id);
-	if (duplicate) {
-		await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
-		return;
-	}
-	
-	// Add participants
-	const roles = interaction.member.roles.cache;
-	addEntries(interaction, roles);
-	
-	// Increment Entry Button Count
-	const newButton = interaction.message.components[0].components[0].setLabel(`🍷 ${entries}`);
-	const row = new MessageActionRow();
-	row.addComponents(newButton);
-	await interaction.update({ components: [row] });
-	await interaction.followUp({ content: 'You have successfully joined the giveaway!', ephemeral: true });
+	checkDuplicateParticipant(messageId, participantId, async (result) => {
+		if (result.length >= 1) {
+			await interaction.reply({ content: 'You already participated in this giveaway.', ephemeral: true });
+			return;
+		}
+
+		// Add participants
+		const roles = interaction.member.roles.cache;
+		addEntries(interaction, roles);
+
+		await interaction.reply({ content: 'You have successfully joined the giveaway!', ephemeral: true });
+	});
 }
 
 function addEntries(interaction, roles) {
@@ -163,8 +116,7 @@ function addEntries(interaction, roles) {
 	const participant = { giveawayId: messageId, discordId: id, username, discriminator };
 	
 	if (!multiplierField) {
-		participants.push(participant);
-		entries++;
+		insertParticipant(participant);
 		return;
 	}
 
@@ -175,9 +127,8 @@ function addEntries(interaction, roles) {
 	if (roles.get(hangar.roles.head)) multiplier = 4;
 	
 	for (let i = 0; i < multiplier; i++) {
-		participants.push(participant);
+		insertParticipant(participant);
 	}
-	entries++;
 }
 
 async function checkEligibility(interaction) {
@@ -197,11 +148,35 @@ function determineWinners(users, winnerCount) {
 
 	while (winners.length < winnerCount && sentinel < users.length) {
 		const random = Math.floor(Math.random() * users.length);
-		const duplicate = winners.find(winner => winner.discordId === users[random].discordId);
+		const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
 		if (!duplicate) winners.push(users[random]);
 		sentinel++;
 	}
 	return winners;
 }
 
-module.exports = { saveGiveaway, startGiveaway, enterGiveaway, scheduleGiveaway };
+async function reroll(interaction) {
+	const messageId	= interaction.message.embeds[0].footer.text;
+	const title = interaction.message.embeds[0].title;
+
+	await interaction.reply({ content: 'Enter number of winners for reroll.', ephemeral: true });
+	const response = await interaction.channel.awaitMessages({ max: 1 });
+	const { content } = response.first();
+	const winnerCount = content;
+
+	getParticipants(messageId, async users => {
+		const winners = determineWinners(users, winnerCount);
+		// Put winners in string
+		let winnerString = '';
+
+		if (winners.length > 0) {
+			winners.forEach(winner => {
+				winnerString += `<@${winner.discord_id}> `;
+			});
+		}
+
+		await interaction.channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+	});
+}
+
+module.exports = { saveGiveaway, startGiveaway, enterGiveaway, scheduleGiveaway, reroll };

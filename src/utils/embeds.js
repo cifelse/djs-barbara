@@ -157,13 +157,12 @@ module.exports.editEmbed = {
 		.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
 		.setDescription('You know what it is, **Click** 🍷 **to enter the giveaway!**\n')
 		.addFields(
-			{ name: '_ _\nDuration', value: `<t:${Math.floor(giveawayDetails.endsOn.getTime() / 1000)}:R>`, inline: true },
-			{ name: '_ _\nWinner/s', value: `${giveawayDetails.winnerCount}`, inline: true },
+			{ name: '_ _\nDuration', value: `<t:${Math.floor(giveawayDetails.end_date.getTime() / 1000)}:R>`, inline: true },
+			{ name: '_ _\nWinner/s', value: `${giveawayDetails.num_winners}`, inline: true },
 		)
-		.setFooter({ text: `${interaction.id}` })
 		.setTimestamp();
 
-		if (giveawayDetails.all === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
+		if (giveawayDetails.strict_mode === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
 		else giveawayEmbed.addField('_ _\nRequirement', 'At least <@&893745856719757332> (Level 5)');
 
 		if (giveawayDetails.multiplier === 'on') giveawayEmbed.addField('_ _\nMultipliers', `<@&${hangar.roles.head}> + 4\n<@&${hangar.roles.core}> + 3\n<@&${hangar.roles.aircraftEngineers}> + 2`);
