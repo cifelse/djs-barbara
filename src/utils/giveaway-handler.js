@@ -168,27 +168,35 @@ function determineWinners(users, winnerCount) {
 }
 
 async function reroll(interaction) {
-	const messageId	= interaction.message.embeds[0].footer.text;
-	const title = interaction.message.embeds[0].title;
+	// Check Role
+	const roles = interaction.member.roles.cache;
+	if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot)) {
+		const messageId	= interaction.message.embeds[0].footer.text;
+		const title = interaction.message.embeds[0].title;
 
-	await interaction.reply({ content: 'Enter number of winners for reroll.', ephemeral: true });
-	const response = await interaction.channel.awaitMessages({ max: 1 });
-	const { content } = response.first();
-	const winnerCount = content;
+		await interaction.reply({ content: 'Enter number of winners for reroll.', ephemeral: true });
+		const response = await interaction.channel.awaitMessages({ max: 1 });
+		const { content } = response.first();
+		const winnerCount = content;
 
-	getParticipants(messageId, async users => {
-		const winners = determineWinners(users, winnerCount);
-		// Put winners in string
-		let winnerString = '';
+		getParticipants(messageId, async users => {
+			const winners = determineWinners(users, winnerCount);
+			// Put winners in string
+			let winnerString = '';
 
-		if (winners.length > 0) {
-			winners.forEach(winner => {
-				winnerString += `<@${winner.discord_id}> `;
-			});
-		}
+			if (winners.length > 0) {
+				winners.forEach(winner => {
+					winnerString += `<@${winner.discord_id}> `;
+				});
+			}
 
-		await interaction.channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
-	});
+			await interaction.channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+		});
+	}
+	else {
+		await interaction.reply({ content: 'You are not eligible to use this button', ephemeral: true });
+		return;
+	}
 }
 
 module.exports = { saveGiveaway, startGiveaway, enterGiveaway, scheduleGiveaway, reroll };
