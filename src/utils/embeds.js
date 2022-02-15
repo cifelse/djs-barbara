@@ -1,7 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 const play = require('play-dl');
 const hex = require('./hex-values.json');
-const { hangar } = require('./ids.json');
+const { concorde, hangar } = require('./ids.json');
 
 module.exports.editEmbed = {
 	play: async (embed, song) => {
@@ -163,9 +163,9 @@ module.exports.editEmbed = {
 		.setTimestamp();
 
 		if (giveawayDetails.strict_mode === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
-		else giveawayEmbed.addField('_ _\nRequirement', 'At least <@&893745856719757332> (Level 5)');
+		else giveawayEmbed.addField('_ _\nRequirement', `At least <@&${concorde.roles.frequentFlyer}> (Level 5)`);
 
-		if (giveawayDetails.multiplier === 'on') giveawayEmbed.addField('_ _\nMultipliers', `<@&${hangar.roles.head}> + 4\n<@&${hangar.roles.core}> + 3\n<@&${hangar.roles.aircraftEngineers}> + 2`);
+		if (giveawayDetails.multiplier === 'on') giveawayEmbed.addField('_ _\nMultipliers', `<@&${concorde.roles.multiplier.jetsetters}> + 4\n<@&${concorde.roles.multiplier.businessClass}> + 3\n<@&${concorde.roles.multiplier.premiumEcon}> + 2`);
 		
 		return giveawayEmbed;
 	},

@@ -22,7 +22,7 @@ module.exports = {
 			.setDescription('Set multiplier to on or off')
 			.addChoices([['on', 'on'], ['off', 'off']])
 			.setRequired(false))
-		.addStringOption(option => option.setName('for all')
+		.addStringOption(option => option.setName('free-for-all')
 			.setDescription('Include everyone in the giveaway')
 			.addChoices([['on', 'on'], ['off', 'off']])
 			.setRequired(false))
@@ -31,40 +31,48 @@ module.exports = {
 			.addChannelType(ChannelType.GuildText)
 			.setRequired(false)),
 	async execute(interaction, client) {
-		// Get Giveaway Details
-		const title = interaction.options.getString('title');
-        let winnerCount = interaction.options.getInteger('winners');
-		let duration = interaction.options.getString('duration');
-		let multiplier = interaction.options.getString('multiplier');
-		let all = interaction.options.getString('all');
-		let channelId = interaction.options.getChannel('channel');
+		// Check Role
+		const roles = interaction.member.roles.cache;
+		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(hangar.roles.aircraftEngineers)) {
+			// Get Giveaway Details
+			const title = interaction.options.getString('title');
+			let winnerCount = interaction.options.getInteger('winners');
+			let duration = interaction.options.getString('duration');
+			let multiplier = interaction.options.getString('multiplier');
+			let all = interaction.options.getString('free-for-all');
+			let channelId = interaction.options.getChannel('channel');
 
-		// Set default values for Giveaway Details
-		if (!winnerCount) winnerCount = 1;
-		if (!duration) duration = '24h';
-		if (!multiplier) multiplier = 'off';
-		if (!all) all = 'off';
-		if (!channelId) channelId = hangar.channels.barbaraTest;
-		else channelId = channelId.id;
+			// Set default values for Giveaway Details
+			if (!winnerCount) winnerCount = 1;
+			if (!duration) duration = '24h';
+			if (!multiplier) multiplier = 'off';
+			if (!all) all = 'off';
+			if (!channelId) channelId = concorde.channels.giveaway;
+			else channelId = channelId.id;
 
-		// Check for valid Duration
-		const validDuration = /^\d+(s|m|h|d)$/;
-		if (!validDuration.test(duration)) {
-			await interaction.reply({ content: 'You entered an invalid duration' });
+			// Check for valid Duration
+			const validDuration = /^\d+(s|m|h|d)$/;
+			if (!validDuration.test(duration)) {
+				await interaction.reply({ content: 'You entered an invalid duration' });
+				return;
+			}
+
+			const end_date = new Date(Date.now() + ms(duration));
+			
+			// Gather all Giveaway Details
+			const details = { title, 
+				num_winners: winnerCount, 
+				duration,
+				multiplier,
+				end_date,
+				strict_mode: all, 
+				channel_id: channelId };
+			// Confirm Giveaway
+			await startGiveaway(interaction, details, client);
+		}
+		else {
+			await interaction.reply('You are not eligible to use this command');
 			return;
 		}
-
-		const end_date = new Date(Date.now() + ms(duration));
-		
-		// Gather all Giveaway Details
-		const details = { title, 
-			num_winners: winnerCount, 
-			duration,
-			multiplier,
-			end_date,
-			strict_mode: all, 
-			channel_id: channelId };
-		// Confirm Giveaway
-		await startGiveaway(interaction, details, client);
 	},
 };

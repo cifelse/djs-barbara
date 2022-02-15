@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageButton } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
-const { hangar } = require('./ids.json');
+const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant } = require('../database/database-handler');
 
@@ -122,9 +122,9 @@ function addEntries(interaction, roles) {
 
 	let multiplier;
 
-	if (roles.get(hangar.roles.aircraftEngineers)) multiplier = 2;
-	if (roles.get(hangar.roles.core)) multiplier = 3;
-	if (roles.get(hangar.roles.head)) multiplier = 4;
+	if (roles.get(concorde.roles.multiplier.jetsetters)) multiplier = 4;
+	if (roles.get(concorde.roles.multiplier.businessClass)) multiplier = 3;
+	if (roles.get(concorde.roles.multiplier.premiumEcon)) multiplier = 2;
 	
 	for (let i = 0; i < multiplier; i++) {
 		insertParticipant(participant);
@@ -143,14 +143,26 @@ async function checkEligibility(interaction) {
 }
 
 function determineWinners(users, winnerCount) {
+	const numWinners = parseInt(winnerCount);
 	const winners = [];
-	let sentinel = 0;
+	let exit = 0;
+	let lastIndex = -1;
+	let key = true;
+	let random;
 
-	while (winners.length < winnerCount && sentinel < users.length) {
-		const random = Math.floor(Math.random() * users.length);
+	while (winners.length < numWinners && exit < users.length) {
+		while (key) {
+			random = Math.floor(Math.random() * users.length);
+			if (random != lastIndex) {
+				lastIndex = random;
+				key = false;
+			}
+		}
+
 		const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
 		if (!duplicate) winners.push(users[random]);
-		sentinel++;
+		else exit++;
+		key = true;
 	}
 	return winners;
 }

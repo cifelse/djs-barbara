@@ -1,10 +1,17 @@
 {
     "concorde": {
         "roles": {
-
+            "crew": "867780196374151188",
+            "headPilot": "884351522023014421",
+            "frequentFlyer": "932526040809619508",
+            "multiplier": {
+                "jetsetters": "932525487467659306",
+                "businessClass": "932523555780952084",
+                "premiumEcon": "932523863101820988"
+            }
         },
         "channels": {
-            "giveaway": "894593504259477565"
+            "giveaway": "939125466080616518"
         }
     },
     "hangar": {
