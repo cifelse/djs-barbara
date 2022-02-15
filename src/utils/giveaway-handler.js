@@ -1,6 +1,6 @@
-const { MessageActionRow, MessageButton } = require('discord.js');
+const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
-const { concorde } = require('./ids.json');
+const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant } = require('../database/database-handler');
 
@@ -20,9 +20,14 @@ async function startGiveaway(interaction, details, client) {
 	details.start_date = new Date().toString();
 	details.num_entries = 0;
 
-	// saveGiveaway(details);
+	saveGiveaway(details);
 	scheduleGiveaway(client, [details]);
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
+
+	// Send A Copy on Server Logs
+	embed.addField('_ _\nChannel', `<#${details.channel_id}>`);
+	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.serverLogs);
+	await logsChannel.send({ embeds: [embed] });
 }
 
 function scheduleGiveaway(client, details) {
@@ -55,13 +60,42 @@ function scheduleGiveaway(client, details) {
 				if (channel) {
 					const message = await channel.messages.fetch(giveaway_id);
 					if (message) {
-						const rerollButton = message.components[0].components[0].setCustomId('reroll').setLabel('Reroll').setStyle('DANGER');
-						const newEmbed = message.embeds[0];
+						// Edit Embed of Giveaway Message
+						const editedEmbed = message.embeds[0];
+						editedEmbed.setColor('RED');
+						editedEmbed.setFooter({ text: `${message.id}` });
+						editedEmbed.spliceFields(0, editedEmbed.fields.length, [
+							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
+							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
+						]);
+						
+						if (winners.length === 0) {
+							editedEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
+							message.edit({ embeds:[editedEmbed], components: [] });
+						}
+						else {
+							editedEmbed.setDescription('Oh honey, I would like to extend it further but we need to end at some point. **Congratulations to the winner/s!** 🎉');
+							message.edit({ embeds:[editedEmbed], components: [] });
+							channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+						}
+
+						// Create another embed of Giveaway for Server Logs
+						const serverLogs = client.channels.cache.get(concorde.channels.serverLogs);
+						const row = new MessageActionRow();
+						const rerollButton = new MessageButton()
+							.setCustomId('reroll')
+							.setLabel('Reroll')
+							.setStyle('DANGER');
+						row.addComponents(rerollButton);
+
+						const newEmbed = new MessageEmbed();
+						newEmbed.setTitle(`${title}`);
 						newEmbed.setColor('RED');
 						newEmbed.setFooter({ text: `${message.id}` });
 						newEmbed.spliceFields(0, newEmbed.fields.length, [
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
-							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
+							{ name: '_ _\nChannel', value: `${channel_id}`, inline: true },
+							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
 						]);
 						
 						if (winners.length === 0) {
@@ -69,14 +103,13 @@ function scheduleGiveaway(client, details) {
 							rerollButton.setDisabled(true);
 							const newRow = new MessageActionRow();
 							newRow.addComponents(rerollButton);
-							message.edit({ embeds:[newEmbed], components: [newRow] });
+							serverLogs.send({ embeds:[newEmbed], components: [newRow] });
 						}
 						else {
-							newEmbed.setDescription('**Giveaway has ended.** Congratulations to the winner/s! 🎉');
+							newEmbed.setDescription('Oh honey, I would like to extend it further but we need to end at some point. **Congratulations to the winner/s!** 🎉');
 							const newRow = new MessageActionRow();
 							newRow.addComponents(rerollButton);
-							message.edit({ embeds:[newEmbed], components: [newRow] });
-							channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+							serverLogs.send({ embeds:[newEmbed], components: [newRow] });
 						}
 					}
 				}
@@ -128,6 +161,7 @@ function addEntries(interaction, roles) {
 	if (roles.get(concorde.roles.multiplier.jetsetters)) multiplier = 4;
 	if (roles.get(concorde.roles.multiplier.businessClass)) multiplier = 3;
 	if (roles.get(concorde.roles.multiplier.premiumEcon)) multiplier = 2;
+	if (roles.get(concorde.roles.frequentFlyer)) multiplier = 1;
 	
 	for (let i = 0; i < multiplier; i++) {
 		insertParticipant(participant);
@@ -176,13 +210,26 @@ function determineWinners(users, winnerCount) {
 async function reroll(interaction) {
 	// Check Role
 	const roles = interaction.member.roles.cache;
-	if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot)) {
+	if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(concorde.roles.aircraftEngineers) || roles.has(hangar.roles.aircraftEngineers)) {
+		let channel;
 		const messageId	= interaction.message.embeds[0].footer.text;
 		const title = interaction.message.embeds[0].title;
+		const fields = interaction.message.embeds[0].fields;
+		
+		fields.forEach(field => {
+			if (field.name === '_ _\nChannel') channel = interaction.guild.channels.cache.get(field.value);
+		});
 
-		await interaction.reply({ content: 'Enter number of winners for reroll.', ephemeral: true });
+		await interaction.reply({ content: 'Enter number of winners for reroll.' });
 		const response = await interaction.channel.awaitMessages({ max: 1 });
 		const { content } = response.first();
+		const numberChecker = /^\d+$/;
+
+		if (!numberChecker.test(content)) {
+			await interaction.channel.send({ content: 'You entered an invalid number' });
+			return;
+		}
+
 		const winnerCount = content;
 
 		getParticipants(messageId, async users => {
@@ -196,7 +243,7 @@ async function reroll(interaction) {
 				});
 			}
 
-			await interaction.channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+			await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
 		});
 	}
 	else {
