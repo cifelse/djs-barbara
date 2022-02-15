@@ -22,7 +22,7 @@ async function startGiveaway(interaction, details, client) {
 
 	// saveGiveaway(details);
 	scheduleGiveaway(client, [details]);
-	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!`});
+	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
 }
 
 function scheduleGiveaway(client, details) {
@@ -148,8 +148,8 @@ async function checkEligibility(interaction) {
 function determineWinners(users, winnerCount) {
 	const numWinners = parseInt(winnerCount);
 	const winners = [];
-
-	let exit = 0;  //Safety Count to avoid infinite loops
+	// Safety Count to avoid infinite loops
+	let exit = 0; 
 	let random;
 
 	while (winners.length < numWinners && exit < users.length) {
@@ -157,13 +157,14 @@ function determineWinners(users, winnerCount) {
 		random = Math.floor(Math.random() * users.length);
 
 		const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
-
+		// Reset to zero to make sure the count is correct.
 		if (!duplicate) {
 			winners.push(users[random]);
-			exit = 0;  //Reset to zero to make sure the count is correct.
+			exit = 0;  
 		}
+		// Increment every invalid winners
 		else {
-			exit++;  //Increment every invalid winners
+			exit++;  
 		}
 
 		// The goal is to traverse the users.length effectively
