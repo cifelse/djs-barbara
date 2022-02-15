@@ -33,7 +33,7 @@ module.exports = {
 	async execute(interaction, client) {
 		// Check Role
 		const roles = interaction.member.roles.cache;
-		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(hangar.roles.aircraftEngineers)) {
+		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(concorde.roles.aircraftEngineers) || roles.has(hangar.roles.aircraftEngineers)) {
 			// Get Giveaway Details
 			const title = interaction.options.getString('title');
 			let winnerCount = interaction.options.getInteger('winners');
@@ -57,16 +57,26 @@ module.exports = {
 				return;
 			}
 
+			// Check for apostrophe in Title
+			let modifiedTitle = title;
+			for (let i = 0; i < title.length; i++) {
+				if (title[i] === '\'') {
+					modifiedTitle = title.slice(0, i) + '\'' + title.slice(i);
+				}
+			}
+
 			const end_date = new Date(Date.now() + ms(duration));
-			
+			console.log(modifiedTitle);
 			// Gather all Giveaway Details
-			const details = { title, 
+			const details = { 
+				title : modifiedTitle, 
 				num_winners: winnerCount, 
 				duration,
 				multiplier,
 				end_date,
 				strict_mode: all, 
 				channel_id: channelId };
+
 			// Confirm Giveaway
 			await startGiveaway(interaction, details, client);
 		}

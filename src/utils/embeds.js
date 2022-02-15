@@ -1,7 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 const play = require('play-dl');
 const hex = require('./hex-values.json');
-const { concorde, hangar } = require('./ids.json');
+const { concorde } = require('./ids.json');
 
 module.exports.editEmbed = {
 	play: async (embed, song) => {
