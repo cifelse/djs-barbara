@@ -163,7 +163,7 @@ module.exports.editEmbed = {
 		.setTimestamp();
 
 		if (giveawayDetails.strict_mode === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
-		else giveawayEmbed.addField('_ _\nRequirement', `At least <@&${concorde.roles.frequentFlyer}> (Level 5)`);
+		else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
 
 		if (giveawayDetails.multiplier === 'on') giveawayEmbed.addField('_ _\nMultipliers', `<@&${concorde.roles.multiplier.jetsetters}> + 4\n<@&${concorde.roles.multiplier.businessClass}> + 3\n<@&${concorde.roles.multiplier.premiumEcon}> + 2`);
 		

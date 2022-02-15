@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageButton } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
-const { concorde, hangar } = require('./ids.json');
+const { concorde } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant } = require('../database/database-handler');
 
@@ -20,9 +20,9 @@ async function startGiveaway(interaction, details, client) {
 	details.start_date = new Date().toString();
 	details.num_entries = 0;
 
-	saveGiveaway(details);
+	// saveGiveaway(details);
 	scheduleGiveaway(client, [details]);
-	await interaction.reply({ content: 'Giveaway successfully launched!', ephemeral: true });
+	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!`});
 }
 
 function scheduleGiveaway(client, details) {
@@ -40,11 +40,14 @@ function scheduleGiveaway(client, details) {
 	
 				// Put winners in string
 				let winnerString = '';
-		
+
 				if (winners.length > 0) {
 					winners.forEach(winner => {
 						winnerString += `<@${winner.discord_id}> `;
 					});
+				}
+				else {
+					winnerString = 'None';
 				}
 				
 				// Get channel and message to edit and announce winners
@@ -56,7 +59,7 @@ function scheduleGiveaway(client, details) {
 						const newEmbed = message.embeds[0];
 						newEmbed.setColor('RED');
 						newEmbed.setFooter({ text: `${message.id}` });
-						newEmbed.spliceFields(0, 4, [
+						newEmbed.spliceFields(0, newEmbed.fields.length, [
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
 						]);
@@ -137,7 +140,7 @@ async function checkEligibility(interaction) {
 	const requirementsField = interaction.message.embeds[0].fields.find(field => field.value.includes('Free for All'));
 	if (requirementsField) return true;
 
-	const eligible = interaction.member.roles.cache.some(role => role.id === hangar.roles.aircraftEngineers || role.id === hangar.roles.core || role.id === hangar.roles.head);
+	const eligible = interaction.member.roles.cache.some(role => role.id === concorde.roles.frequentFlyer || role.id === concorde.roles.multiplier.premiumEcon || role.id === concorde.roles.multiplier.businessClass || role.id === concorde.roles.multiplier.jetsetters);
 
 	return eligible;
 }
