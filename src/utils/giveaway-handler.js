@@ -2,7 +2,7 @@ const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
 const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
-const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries } = require('../database/database-handler');
+const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/database-handler');
 const { CronJob } = require('cron');
 
 async function startGiveaway(interaction, details, client) {
@@ -53,7 +53,11 @@ async function scheduleGiveaway(client, details) {
 		const watchEntries = new CronJob('* * * * * *', () => {
 			getEntries(giveaway_id, async (result) => {
 				const entries = result[0].num_entries;
-				const newButton = message.components[0].components[0].setLabel(`🍷 ${entries}`);
+				const newButton = message.components[0].components[0];
+				// Check for number of entries
+				if (entries === newButton.label.replace(/[^\d]+/gi, '')) return;
+				
+				newButton.setLabel(`🍷 ${entries}`);
 				const row = new MessageActionRow();
 				row.addComponents(newButton);
 				await message.edit({ components: [row] });
@@ -161,17 +165,18 @@ async function enterGiveaway(interaction) {
 	});
 }
 
-function addEntries(interaction, roles) {
+async function addEntries(interaction, roles) {
 	// Check for Multiplier
 	const multiplierField = interaction.message.embeds[0].fields.find(field => field.name.includes('Multipliers'));
 	
 	// Collect Participant's info
 	const messageId = interaction.message.id;
-	const { id, username, discriminator } = interaction.user;
-	const participant = { giveawayId: messageId, discordId: id, username, discriminator };
+	const { id } = interaction.user;
+	const participant = { giveawayId: messageId, discordId: id };
 	
 	if (!multiplierField) {
 		insertParticipant(participant);
+		updateEntries(messageId);
 		return;
 	}
 
@@ -185,6 +190,15 @@ function addEntries(interaction, roles) {
 	for (let i = 0; i < multiplier; i++) {
 		insertParticipant(participant);
 	}
+	
+	updateEntries(messageId);
+
+	// const newButton = interaction.message.components[0].components[0];
+	// let entryNumber = newButton.label.replace(/[^\d]+/gi, '');
+	// newButton.setLabel(`🍷 ${entryNumber++}`);
+	// const row = new MessageActionRow();
+	// row.addComponents(newButton);
+	// await interaction.message.edit({ components: [row] });
 }
 
 async function checkEligibility(interaction) {
@@ -202,31 +216,27 @@ function determineWinners(users, winnerCount) {
     const numWinners = parseInt(winnerCount);
     const winners = [];
 
-    // Safety Count to avoid infinite loops
-    let exit = 0; 
     let random;
+    // Safety Count to avoid infinite loops
+    let exit = users.length; 
 
-    while (winners.length < numWinners && exit < users.length) {
-        
+    while (winners.length < numWinners && exit > 0) {
+
         random = Math.floor(Math.random() * users.length);
 
         const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
         
-        // The goal is to traverse the users.length effectively
-        // so the count should reset to 0 again whenever there is a valid winner.
         if (!duplicate) {
             winners.push(users[random]);
-
-            // Reset to zero to make sure the count is correct.
-            exit = 0;  
+            exit = users.length;  
         }
         else {
-            // Increment every invalid winners
-            exit++;  
+            exit--;  
         }
 
         // Whatever the outcome is, remove the person in the users pool.
         users.splice(random, 1);
+		if (users.length <= 0) exit = 0;
     }
     return winners;
 }
@@ -252,7 +262,7 @@ async function reroll(interaction) {
 
 		fields.forEach(async field => {
 			if (field.name === '_ _\nChannel') {
-				channel = await interaction.guild.channels.cache.get(field.value.replace(/[^a-z\d\s]+/gi, ''));
+				channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
 			}
 		});
 

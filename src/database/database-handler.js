@@ -24,7 +24,7 @@ function saveGiveaway(details) {
 
 // ENTERING A PARTICIPANT
 function insertParticipant(participant) {
-    const { giveawayId, discordId, username, discriminator } = participant;
+    const { giveawayId, discordId } = participant;
 
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
@@ -47,18 +47,33 @@ function insertParticipant(participant) {
             }
 
             // Insert a Record to the Table
-            sql = `INSERT INTO participants (giveaway_id, discord_id, username, discriminator) VALUES ('${giveawayId}', '${discordId}', '${username}', '${discriminator}')`;
+            sql = `INSERT INTO participants (giveaway_id, discord_id) VALUES ('${giveawayId}', '${discordId}')`;
             con.query(sql, err => {
                 if (err) throw err;
                 console.log('Barbara: one (1) passenger is entered into the pool!');
             });
 
-            // Increment Entries
-            sql = `UPDATE giveaways SET num_entries = num_entries + 1 WHERE giveaway_id = '${giveawayId}'`;
-            con.query(sql, (err) => {
-                if (err) throw err;
-            });
+            // End the Connection
+            con.end();
+        });
+    });
+}
 
+function updateEntries(giveawayId) {
+    const con = mysql.createConnection({
+        host: 'eu02-sql.pebblehost.com',
+        user: 'customer_253110_giveaways',
+        password: 'LwtF8qJ6lEiEC3H!@KFm',
+        database: 'customer_253110_giveaways',
+    });
+
+    con.connect(err => {
+        if (err) throw err;
+        // Increment Entries
+        const sql = `UPDATE giveaways SET num_entries = num_entries + 1 WHERE giveaway_id = '${giveawayId}'`;
+        
+        con.query(sql, (err) => {
+            if (err) throw err;
             // End the Connection
             con.end();
         });
@@ -174,6 +189,7 @@ function getEntries(giveawayId, callback) {
 module.exports = { 
     saveGiveaway, 
     insertParticipant, 
+    updateEntries,
     getParticipants,
     checkDuplicateParticipant, 
     getGiveaways, 
