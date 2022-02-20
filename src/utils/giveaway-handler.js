@@ -42,8 +42,10 @@ async function scheduleGiveaway(client, details) {
 
 		if (endDate < currentDate) continue;
 		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
-		console.log('Scheduling giveaway for', end_date);
-
+		
+		console.log("\nBarbara: Alert! I'm Scheduling a Giveaway for", end_date);
+		console.log("");
+		
 		const channel = client.channels.cache.get(channel_id);
 		let message;
 		if (channel) {
@@ -54,13 +56,17 @@ async function scheduleGiveaway(client, details) {
 			getEntries(giveaway_id, async (result) => {
 				const entries = result[0].num_entries;
 				const newButton = message.components[0].components[0];
+
 				// Check for number of entries
-				if (entries === newButton.label.replace(/[^\d]+/gi, '')) return;
-				
+				if (entries == newButton.label.replace(/[^\d]+/gi, '')) return;
+
+				console.log(`Barbara: There are a total of ${entries} participants now!`);
+
 				newButton.setLabel(`🍷 ${entries}`);
 				const row = new MessageActionRow();
 				row.addComponents(newButton);
 				await message.edit({ components: [row] });
+
 			});
 		});
 		watchEntries.start();
@@ -192,13 +198,6 @@ async function addEntries(interaction, roles) {
 	}
 	
 	updateEntries(messageId);
-
-	// const newButton = interaction.message.components[0].components[0];
-	// let entryNumber = newButton.label.replace(/[^\d]+/gi, '');
-	// newButton.setLabel(`🍷 ${entryNumber++}`);
-	// const row = new MessageActionRow();
-	// row.addComponents(newButton);
-	// await interaction.message.edit({ components: [row] });
 }
 
 async function checkEligibility(interaction) {
@@ -217,27 +216,33 @@ function determineWinners(users, winnerCount) {
     const winners = [];
 
     let random;
-    // Safety Count to avoid infinite loops
     let exit = users.length; 
 
+	// Shuffle the array before picking the winners
+	for (let position = users.length - 1; position > 0; position--) {
+		const newPosition = Math.floor(Math.random() * (position + 1));
+		const placeholder = users[position];
+		users[position] = users[newPosition];
+		users[newPosition] = placeholder;
+	}
+
+	// Pick the Winners
     while (winners.length < numWinners && exit > 0) {
 
         random = Math.floor(Math.random() * users.length);
 
+		// Check if users[random] is already a winner
         const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
         
-        if (!duplicate) {
-            winners.push(users[random]);
-            exit = users.length;  
-        }
-        else {
-            exit--;  
-        }
+		// If users[random] is not yet a winner, add the person to the winners array
+        if (!duplicate) winners.push(users[random]);
 
-        // Whatever the outcome is, remove the person in the users pool.
+        // Remove the users[random] from the selection of potential winners
         users.splice(random, 1);
-		if (users.length <= 0) exit = 0;
+		exit = users.length;
     }
+
+	console.log("Barbara: I've successfully chosen the winners!");
     return winners;
 }
 
