@@ -4,6 +4,7 @@ const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/database-handler');
 const { CronJob } = require('cron');
+const ms = require('ms');
 
 async function startGiveaway(interaction, details, client) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
@@ -20,7 +21,7 @@ async function startGiveaway(interaction, details, client) {
 	details.giveaway_id = message.id;
 	details.start_date = new Date().toString();
 	details.num_entries = 0;
-
+	
 	saveGiveaway(details);
 	scheduleGiveaway(client, [details]);
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
@@ -28,6 +29,8 @@ async function startGiveaway(interaction, details, client) {
 	// Send A Copy on Server Logs
 	embed.setDescription(`A giveaway has started. Go to this giveaway by [clicking here.](${message.url})`);
 	embed.addField('_ _\nChannel', `<#${details.channel_id}>`);
+	embed.setFooter({ text: `${details.giveaway_id}` });
+	embed.setTimestamp();
 	embed.fields.forEach(field => {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
@@ -43,8 +46,7 @@ async function scheduleGiveaway(client, details) {
 		if (endDate < currentDate) continue;
 		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
 		
-		console.log("\nBarbara: Alert! I'm Scheduling a Giveaway for", end_date);
-		console.log("");
+		console.log('\nBarbara: Alert! I\'m Scheduling a Giveaway for', end_date);
 		
 		const channel = client.channels.cache.get(channel_id);
 		let message;
@@ -95,6 +97,7 @@ async function scheduleGiveaway(client, details) {
 						const editedEmbed = message.embeds[0];
 						editedEmbed.setColor('RED');
 						editedEmbed.setFooter({ text: `${message.id}` });
+						editedEmbed.setTimestamp();
 						editedEmbed.spliceFields(0, editedEmbed.fields.length, [
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
@@ -127,7 +130,8 @@ async function scheduleGiveaway(client, details) {
 						newEmbed.setTitle(`${title}`);
 						newEmbed.setColor('RED');
 						newEmbed.setDescription(`Giveaway has ended. Go to this giveaway by [clicking here.](${message.url})`);
-						newEmbed.setFooter({ text: `${message.id}` });
+						newEmbed.setFooter({ text: `${giveaway_id}` });
+						newEmbed.setTimestamp();
 						newEmbed.spliceFields(0, newEmbed.fields.length, [
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
@@ -139,7 +143,16 @@ async function scheduleGiveaway(client, details) {
 						}
 						const newRow = new MessageActionRow();
 						newRow.addComponents(rerollButton);
-						serverLogs.send({ embeds:[newEmbed], components: [newRow] });
+						const serverLogsMessage = await serverLogs.send({ embeds:[newEmbed], components: [newRow], fetchReply: true });
+						// Disable Reroll Button after 2 days
+						setTimeout(() => {
+							const disabledRerollButton = serverLogsMessage.components[0].components[0];
+							disabledRerollButton.setDisabled(true);
+							const disabledRow = new MessageActionRow();
+							disabledRow.addComponents(disabledRerollButton);
+							serverLogsMessage.edit({ components: [disabledRow] });
+							console.log('Barbara: I disabled the Reroll button!');
+						}, ms('1d'));
 					}
 				}
 			});
@@ -242,7 +255,7 @@ function determineWinners(users, winnerCount) {
 		exit = users.length;
     }
 
-	console.log("Barbara: I've successfully chosen the winners!");
+	console.log('Barbara: I\'ve successfully chosen the winners!');
     return winners;
 }
 

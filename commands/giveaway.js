@@ -51,6 +51,7 @@ module.exports = {
 			else channelId = channelId.id;
 
 			// Check for valid Duration
+			duration = duration.toLowerCase();
 			const validDuration = /^\d+(s|m|h|d)$/;
 			if (!validDuration.test(duration)) {
 				await interaction.reply({ content: 'You entered an invalid duration' });

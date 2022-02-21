@@ -159,8 +159,7 @@ module.exports.editEmbed = {
 		.addFields(
 			{ name: '_ _\nDuration', value: `<t:${Math.floor(giveawayDetails.end_date.getTime() / 1000)}:R>`, inline: true },
 			{ name: '_ _\nWinner/s', value: `${giveawayDetails.num_winners}`, inline: true },
-		)
-		.setTimestamp();
+		);
 
 		if (giveawayDetails.strict_mode === 'on') giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
 		else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
