@@ -5,6 +5,7 @@ const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/database-handler');
 const { CronJob } = require('cron');
 const ms = require('ms');
+const ids = require('./ids.json');
 
 async function startGiveaway(interaction, details, client) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
@@ -50,9 +51,7 @@ async function scheduleGiveaway(client, details) {
 		
 		const channel = client.channels.cache.get(channel_id);
 		let message;
-		if (channel) {
-			message = await channel.messages.fetch(giveaway_id);
-		}
+		if (channel) message = await channel.messages.fetch(giveaway_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
 			getEntries(giveaway_id, async (result) => {
@@ -117,8 +116,18 @@ async function scheduleGiveaway(client, details) {
 							channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
 						}
 
-						// Create another embed of Giveaway for Server Logs
+						// Edit Giveaway logs message
 						const serverLogs = client.channels.cache.get(concorde.channels.serverLogs);
+						let logMessage;
+						if (serverLogs) {
+							const logMessages = await serverLogs.messages.fetch({ limit: 20 });
+							logMessages.forEach(fetchedMessage => {
+								if (!fetchedMessage.embeds[0].footer) return;
+								if (fetchedMessage.embeds[0].footer.text === giveaway_id) {
+									logMessage = fetchedMessage;
+								}
+							});
+						}
 						const row = new MessageActionRow();
 						const rerollButton = new MessageButton()
 							.setCustomId('reroll')
@@ -136,21 +145,23 @@ async function scheduleGiveaway(client, details) {
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
 							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
+							{ name: '_ _\nReroll Reminder', value: `Only the <@&${ids.concorde.roles.headPilot}> and the <@&${ids.concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
 						]);
 						
 						if (winners.length === 0) {
 							rerollButton.setDisabled(true);
 						}
+						// If there are winners
 						const newRow = new MessageActionRow();
 						newRow.addComponents(rerollButton);
-						const serverLogsMessage = await serverLogs.send({ embeds:[newEmbed], components: [newRow], fetchReply: true });
+						await logMessage.edit({ embeds:[newEmbed], components: [newRow] });
 						// Disable Reroll Button after 2 days
-						setTimeout(() => {
-							const disabledRerollButton = serverLogsMessage.components[0].components[0];
+						setTimeout(async () => {
+							const disabledRerollButton = logMessage.components[0].components[0];
 							disabledRerollButton.setDisabled(true);
 							const disabledRow = new MessageActionRow();
 							disabledRow.addComponents(disabledRerollButton);
-							serverLogsMessage.edit({ components: [disabledRow] });
+							await logMessage.edit({ components: [disabledRow] });
 							console.log('Barbara: I disabled the Reroll button!');
 						}, ms('1d'));
 					}
@@ -268,7 +279,7 @@ async function reroll(interaction) {
 		const title = interaction.message.embeds[0].title;
 		const fields = interaction.message.embeds[0].fields;
 		
-		await interaction.reply({ content: 'Enter number of winners for reroll.' });
+		await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
 		const response = await interaction.channel.awaitMessages({ max: 1 });
 		const { content } = response.first();
 		const numberChecker = /^\d+$/;
@@ -296,8 +307,10 @@ async function reroll(interaction) {
 					winnerString += `<@${winner.discord_id}> `;
 				});
 			}
-			await interaction.channel.send('Done!');
+			await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
 			await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+			// Delete Response After Sending New Winners
+			response.first().delete();
 		});
 	}
 	else {

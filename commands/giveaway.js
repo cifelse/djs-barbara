@@ -58,16 +58,16 @@ module.exports = {
 				return;
 			}
 
-			// Check for apostrophe in Title
+			// Check for apostrophe in Title and make it ALL CAPS
 			let modifiedTitle = title;
 			for (let i = 0; i < title.length; i++) {
 				if (title[i] === '\'') {
 					modifiedTitle = title.slice(0, i) + '\'' + title.slice(i);
 				}
 			}
+			modifiedTitle = modifiedTitle.toUpperCase();
 
 			const end_date = new Date(Date.now() + ms(duration));
-			console.log(modifiedTitle);
 			// Gather all Giveaway Details
 			const details = { 
 				title : modifiedTitle, 
