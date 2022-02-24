@@ -4,7 +4,6 @@ const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
 const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/database-handler');
 const { CronJob } = require('cron');
-const ms = require('ms');
 const ids = require('./ids.json');
 
 async function startGiveaway(interaction, details, client) {
@@ -122,7 +121,7 @@ async function scheduleGiveaway(client, details) {
 						if (serverLogs) {
 							const logMessages = await serverLogs.messages.fetch({ limit: 20 });
 							logMessages.forEach(fetchedMessage => {
-								if (!fetchedMessage.embeds[0].footer) return;
+								if (!fetchedMessage.embeds[0] || !fetchedMessage.embeds[0].footer) return;
 								if (fetchedMessage.embeds[0].footer.text === giveaway_id) {
 									logMessage = fetchedMessage;
 								}
@@ -154,16 +153,7 @@ async function scheduleGiveaway(client, details) {
 						// If there are winners
 						const newRow = new MessageActionRow();
 						newRow.addComponents(rerollButton);
-						await logMessage.edit({ embeds:[newEmbed], components: [newRow] });
-						// Disable Reroll Button after 2 days
-						setTimeout(async () => {
-							const disabledRerollButton = logMessage.components[0].components[0];
-							disabledRerollButton.setDisabled(true);
-							const disabledRow = new MessageActionRow();
-							disabledRow.addComponents(disabledRerollButton);
-							await logMessage.edit({ components: [disabledRow] });
-							console.log('Barbara: I disabled the Reroll button!');
-						}, ms('1d'));
+						await logMessage.edit({ embeds:[newEmbed], components: [newRow] });						
 					}
 				}
 			});
