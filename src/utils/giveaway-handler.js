@@ -229,9 +229,6 @@ function determineWinners(users, winnerCount) {
     const numWinners = parseInt(winnerCount);
     const winners = [];
 
-    let random;
-    let exit = users.length; 
-
 	// Shuffle the array before picking the winners
 	for (let position = users.length - 1; position > 0; position--) {
 		const newPosition = Math.floor(Math.random() * (position + 1));
@@ -241,9 +238,9 @@ function determineWinners(users, winnerCount) {
 	}
 
 	// Pick the Winners
-    while (winners.length < numWinners && exit > 0) {
+    while (winners.length < numWinners && users.length > 0) {
 
-        random = Math.floor(Math.random() * users.length);
+        const random = Math.floor(Math.random() * users.length);
 
 		// Check if users[random] is already a winner
         const duplicate = winners.find(winner => winner.discord_id === users[random].discord_id);
@@ -253,7 +250,6 @@ function determineWinners(users, winnerCount) {
 
         // Remove the users[random] from the selection of potential winners
         users.splice(random, 1);
-		exit = users.length;
     }
 
 	console.log('Barbara: I\'ve successfully chosen the winners!');
