@@ -36,6 +36,7 @@ client.once('ready', async bot => {
 		scheduleGiveaway(client, giveaways);
 	});
 	disableRerolls.start();
+	gm.start();
 });
 
 client.on('interactionCreate', async interaction => {
@@ -64,6 +65,13 @@ client.on('interactionCreate', async interaction => {
 			await reroll(interaction);
 		}
 	}
+});
+
+// Schedule Message
+const gm = new CronJob('0 0 11/22 * * *', () => {
+	const gmChannel = client.guilds.cache.get(ids.concorde.guildID).channels.cache.get('909300632207364146');
+	if (!gmChannel) return;
+	gmChannel.send('GM GN, Why don\'t you all hang with me at the <#929794847198564354>?');
 });
 
 const disableRerolls = new CronJob('0 */30 * * * *', async () => {
