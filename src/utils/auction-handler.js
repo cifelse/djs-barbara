@@ -4,7 +4,7 @@ const { editEmbed } = require('./embeds');
 const { hangar } = require('./ids.json');
 
 async function startAuction(interaction, details, client) {
-	const embed = editEmbed.auctionEmbed(interaction, details);
+	const embed = editEmbed.auctionEmbed(details);
 	const row = new MessageActionRow();
 	row.addComponents(
 		new MessageButton()

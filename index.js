@@ -9,6 +9,8 @@ const { getGiveaways } = require('./src/database/giveaway-db');
 const { CronJob } = require('cron');
 const ids = require('./src/utils/ids.json');
 const ms = require('ms');
+const discordModals = require('discord-modals');
+const { Modal, TextInputComponent, showModal } = discordModals;
 
 // Create client instance
 const client = new Client({ intents: [
@@ -16,6 +18,8 @@ const client = new Client({ intents: [
 	Intents.FLAGS.GUILD_MESSAGES,
 	Intents.FLAGS.GUILD_VOICE_STATES,
 ] });
+
+discordModals(client);
 
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -64,7 +68,71 @@ client.on('interactionCreate', async interaction => {
 		if (interaction.customId === 'reroll') {
 			await reroll(interaction);
 		}
+		if (interaction.customId === 'bid') {
+			const modal = new Modal()
+                .setCustomId('bid-modal')
+                .setTitle('Welcome to the Auction')
+                .addComponents([
+                new TextInputComponent()
+                    .setCustomId('bid-input')
+                    .setLabel('Enter MILES')
+                    .setStyle('SHORT')
+                    .setMinLength(1)
+                    .setMaxLength(5)
+                    .setPlaceholder('Enter amount here')
+                    .setRequired(true),
+                ]);
+
+            showModal(modal, { client, interaction });
+		}
 	}
+});
+
+client.on('modalSubmit', async (modal) => {
+    if (modal.customId === 'bid-modal') {
+        let response = modal.getTextInputValue('bid-input');
+        // If the response is valid
+        if (/^\d+$/.test(response)) {
+			response = parseInt(response);
+			const embed = modal.message.embeds[0];
+			let value, invalidAmount;
+			embed.fields.forEach(field => {
+				if (field.name === '_ _\nMinimum Bid') {
+					value = field.value.replace(/[^\d]+/gi, '');
+					if (response < parseInt(value)) invalidAmount = true;
+				}
+				if (field.name === '_ _\nBid') {
+					// Get Current Bid Value
+					value = field.value.replace(/[^\d]+/gi, '');
+					// Check Amount if Less than Current Bid Value
+					if (response <= parseInt(value)) invalidAmount = true;
+				}
+			});
+			if (invalidAmount) {
+				modal.reply({ content: `Bid should be more than ${value}` });
+				return;
+			}
+			const fields = [
+				{
+					name: '_ _\nHighest Bidder',
+					value: `${modal.user}`,
+					inline: true,
+				},
+				{
+					name: '_ _\nBid',
+					value: `${response} MILES`,
+					inline: true,
+				},
+			];
+			embed.fields.splice(1, embed.fields.length, fields);
+			modal.message.edit({ embeds: [embed] });
+			modal.reply({ content: `You have successfully bidded ${response} MILES.`, ephemeral: true });
+		}
+        // If the response is invalid
+        else {
+			modal.reply({ content: 'You entered an invalid amount.', ephemeral: true });
+        }
+    }
 });
 
 // Schedule Message

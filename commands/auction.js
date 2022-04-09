@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { editEmbed } = require('../src/utils/embeds');
 const { concorde, hangar } = require('../src/utils/ids.json');
 const ms = require('ms');
 const { startAuction } = require('../src/utils/auction-handler');
