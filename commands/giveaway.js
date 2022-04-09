@@ -76,7 +76,8 @@ module.exports = {
 				multiplier,
 				end_date,
 				strict_mode: all, 
-				channel_id: channelId };
+				channel_id: channelId,
+			};
 
 			// Confirm Giveaway
 			await startGiveaway(interaction, details, client);

@@ -168,4 +168,39 @@ module.exports.editEmbed = {
 		
 		return giveawayEmbed;
 	},
+	auctionEmbed: (interaction, details) => {
+		return {
+			title: `${details.title}`,
+			description: 'Use your MILES to chuchuDESCRIPTION',
+			fields: [
+				{
+					name: '_ _\nMinimum Bid',
+					value: `${details.minBid}`,
+					inline: true,
+				},
+				{
+					name: '_ _\nDuration',
+					value: `<t:${Math.floor(details.endDate.getTime() / 1000)}:R>`,
+					inline: true,
+				},
+				{ name: '_ _', value: '_ _', inline: true },
+				{
+					name: '_ _\nHighest Bidder',
+					value: `${interaction.user}`,
+					inline: true,
+				},
+				{
+					name: '_ _\nBid',
+					value: `1300 MILES`,
+					inline: true,
+				},
+				{ name: '_ _', value: '_ _', inline: true },
+				{ 
+					name: '_ _', 
+					value: 'To bid for this auction, type `/bid <id><value>` in #soon-channel',
+				},
+			],
+			color: '2f3136',
+		};
+	},
 };

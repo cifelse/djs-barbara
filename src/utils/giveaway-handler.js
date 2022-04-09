@@ -2,7 +2,7 @@ const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
 const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
-const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/database-handler');
+const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/giveaway-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 
