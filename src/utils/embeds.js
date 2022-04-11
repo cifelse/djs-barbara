@@ -175,12 +175,12 @@ module.exports.editEmbed = {
 			fields: [
 				{
 					name: '_ _\nDuration',
-					value: `<t:${Math.floor(details.endDate.getTime() / 1000)}:R>`,
+					value: `<t:${Math.floor(details.end_date.getTime() / 1000)}:R>`,
 					inline: true,
 				},
 				{
 					name: '_ _\nMinimum Bid',
-					value: `${details.minBid}`,
+					value: `${details.minimum_bid}`,
 					inline: true,
 				},
 			],

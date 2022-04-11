@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { concorde, hangar } = require('../src/utils/ids.json');
 const ms = require('ms');
 const { startAuction } = require('../src/utils/auction-handler');
+const { ChannelType } = require('discord-api-types/v10');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -16,18 +17,25 @@ module.exports = {
 			.setRequired(false))
 		.addStringOption(option => option.setName('duration')
 		.setDescription('Enter duration of auction.')
-		.setRequired(false)),
+		.setRequired(false))
+		.addChannelOption(option => option.setName('channel')
+			.setDescription('Enter the channel where you want to start the giveaway.')
+			.addChannelType(ChannelType.GuildText)
+			.setRequired(false)),
 	async execute(interaction, client) {
 		// Role Checker
 		const roles = interaction.member.roles.cache;
 		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(hangar.roles.aircraftEngineers)) {
 			const title = interaction.options.getString('title');
-			let minBid = interaction.options.getInteger('minimum-bid');
+			let minimum_bid = interaction.options.getInteger('minimum-bid');
 			let duration = interaction.options.getString('duration');
+			let channel_id = interaction.options.getChannel('channel');
 			
 			// Set Default Values
-			if (!minBid) minBid = 500;
+			if (!minimum_bid) minimum_bid = 500;
 			if (!duration) duration = '24h';
+			if (!channel_id) channel_id = hangar.channels.barbaraTest;
+			else channel_id = channel_id.id;
 
 			// Check for valid Duration
 			duration = duration.toLowerCase();
@@ -37,14 +45,23 @@ module.exports = {
 				return;
 			}
 
-			const endDate = new Date(Date.now() + ms(duration));
+			// Check for apostrophe in Title and make it ALL CAPS
+			let modifiedTitle = title;
+			for (let i = 0; i < title.length; i++) {
+				if (title[i] === '\'') {
+					modifiedTitle = title.slice(0, i) + '\'' + title.slice(i);
+				}
+			}
+			modifiedTitle = modifiedTitle.toUpperCase();
+
+			const end_date = new Date(Date.now() + ms(duration));
 
 			// Gather all Auction Details
 			const details = { 
-				title,
-				minBid,
-				duration,
-				endDate,
+				title: modifiedTitle,
+				minimum_bid,
+				end_date,
+				channel_id
 			};
 
 			startAuction(interaction, details, client);

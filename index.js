@@ -10,6 +10,8 @@ const { CronJob } = require('cron');
 const ids = require('./src/utils/ids.json');
 const ms = require('ms');
 const discordModals = require('discord-modals');
+const { submitBid, scheduleAuction } = require('./src/utils/auction-handler');
+const { checkMiles, updateBid, getAuctions } = require('./src/database/auction-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
 
 // Create client instance
@@ -36,9 +38,10 @@ client.once('ready', async bot => {
 	console.log(`Barbara: I'm Ready! Logged in as ${bot.user.tag}`);
 	bot.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 	
-	getGiveaways((giveaways) => {
-		scheduleGiveaway(client, giveaways);
-	});
+	// Schedule Giveaways and Auctions
+	getGiveaways(giveaways => scheduleGiveaway(client, giveaways));
+	getAuctions(auctions => scheduleAuction(client, auctions));
+
 	disableRerolls.start();
 	gm.start();
 });
@@ -70,7 +73,7 @@ client.on('interactionCreate', async interaction => {
 		}
 		if (interaction.customId === 'bid') {
 			const modal = new Modal()
-                .setCustomId('bid-modal')
+                .setCustomId('bid')
                 .setTitle('Welcome to the Auction')
                 .addComponents([
                 new TextInputComponent()
@@ -89,10 +92,14 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.on('modalSubmit', async (modal) => {
-    if (modal.customId === 'bid-modal') {
-        let response = modal.getTextInputValue('bid-input');
-        // If the response is valid
-        if (/^\d+$/.test(response)) {
+    if (modal.customId === 'bid') {
+		// Get necessary data 
+        const user = modal.user;
+		const auctionId = modal.message.id;
+		let response = modal.getTextInputValue('bid-input');
+
+		// If the response is valid
+		if (/^\d+$/.test(response)) {
 			response = parseInt(response);
 			const embed = modal.message.embeds[0];
 			let value, invalidAmount;
@@ -109,29 +116,36 @@ client.on('modalSubmit', async (modal) => {
 				}
 			});
 			if (invalidAmount) {
-				modal.reply({ content: `Bid should be more than ${value}` });
+				await modal.reply({ content: `Bid should be more than ${value}` });
 				return;
 			}
-			const fields = [
-				{
-					name: '_ _\nHighest Bidder',
-					value: `${modal.user}`,
-					inline: true,
-				},
-				{
-					name: '_ _\nBid',
-					value: `${response} MILES`,
-					inline: true,
-				},
-			];
-			embed.fields.splice(1, embed.fields.length, fields);
-			modal.message.edit({ embeds: [embed] });
-			modal.reply({ content: `You have successfully bidded ${response} MILES.`, ephemeral: true });
+			checkMiles(user.id, async userData => {
+				if (userData.miles < response) {
+					await modal.reply({ content: `You do not have enough to bid ${response} MILES.` });
+					return;
+				}
+				const fields = [
+					{
+						name: '_ _\nHighest Bidder',
+						value: `${modal.user}`,
+						inline: true,
+					},
+					{
+						name: '_ _\nBid',
+						value: `${response} MILES`,
+						inline: true,
+					},
+				];
+				embed.fields.splice(1, embed.fields.length, fields);
+				modal.message.edit({ embeds: [embed] });
+				updateBid(auctionId, user, response);
+				await modal.reply({ content: `You have successfully bidded ${response} MILES.`, ephemeral: true });
+			});
 		}
-        // If the response is invalid
-        else {
-			modal.reply({ content: 'You entered an invalid amount.', ephemeral: true });
-        }
+		// If the response is invalid
+		else {
+			await modal.reply({ content: 'You entered an invalid amount.', ephemeral: true });
+		}
     }
 });
 
