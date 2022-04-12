@@ -24,6 +24,8 @@ const client = new Client({ intents: [
 discordModals(client);
 
 client.commands = new Collection();
+client.auctionSchedules = [];
+
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
@@ -116,27 +118,58 @@ client.on('modalSubmit', async (modal) => {
 				}
 			});
 			if (invalidAmount) {
-				await modal.reply({ content: `Bid should be more than ${value}` });
+				await modal.reply({ content: `Bid should be more than ${value}`, ephemeral: true });
 				return;
 			}
 			checkMiles(user.id, async userData => {
+				let fields, spliceValue;
 				if (userData.miles < response) {
-					await modal.reply({ content: `You do not have enough to bid ${response} MILES.` });
+					await modal.reply({ content: `You do not have enough to bid ${response} MILES.`, ephemeral: true });
 					return;
 				}
-				const fields = [
-					{
-						name: '_ _\nHighest Bidder',
-						value: `${modal.user}`,
-						inline: true,
-					},
-					{
-						name: '_ _\nBid',
-						value: `${response} MILES`,
-						inline: true,
-					},
-				];
-				embed.fields.splice(1, embed.fields.length, fields);
+				// Check if time remaining is 10 minutes
+				const auction = client.auctionSchedules.find(auction => auction.title === embed.title);
+				const dateDifference = Math.abs(Date.parse(auction.endDate) - Date.now());
+				const minutes = Math.round(dateDifference / 60000);
+				console.log({minutes});
+				if (minutes <= 10) {
+					const newEndDate = new Date(Date.now() + ms('10m'));
+					auction.reschedule(newEndDate);
+					spliceValue = 0;
+					fields = [
+						{
+							name: '_ _\nDuration',
+							value: `<t:${Math.floor(newEndDate.getTime() / 1000)}:R>`,
+							inline: true,
+						},
+						{
+							name: '_ _\nHighest Bidder',
+							value: `${modal.user}`,
+							inline: true,
+						},
+						{
+							name: '_ _\nBid',
+							value: `${response} MILES`,
+							inline: true,
+						},
+					];
+				}
+				else {
+					spliceValue = 1;
+					fields = [
+						{
+							name: '_ _\nHighest Bidder',
+							value: `${modal.user}`,
+							inline: true,
+						},
+						{
+							name: '_ _\nBid',
+							value: `${response} MILES`,
+							inline: true,
+						},
+					];
+				}
+				embed.fields.splice(spliceValue, embed.fields.length, fields);
 				modal.message.edit({ embeds: [embed] });
 				updateBid(auctionId, user, response);
 				await modal.reply({ content: `You have successfully bidded ${response} MILES.`, ephemeral: true });

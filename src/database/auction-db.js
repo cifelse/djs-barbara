@@ -116,9 +116,36 @@ function getAuctions(callback) {
     });
 }
 
+function getAuction(auction_id, callback) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+	connection.connect(err => {
+        if (err) throw err;
+    
+		const sql = `SELECT * FROM auctions WHERE auction_id = "${auction_id}"`;
+        
+		connection.query(sql, (err, res) => {
+			if (err) throw err;
+			if (!res[0]) {
+				connection.end();
+				callback(res);
+				return;
+			}
+			connection.end();
+			callback(res);
+		});
+	});
+}
+
 module.exports = {
 	saveAuction,
 	checkMiles,
 	updateBid,
-	getAuctions
+	getAuctions,
+	getAuction
 };
