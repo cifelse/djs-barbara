@@ -1,7 +1,7 @@
 const { MessageButton, MessageActionRow } = require('discord.js');
 const { saveAuction, getAuction } = require('../database/auction-db');
 const { editEmbed } = require('./embeds');
-const { hangar } = require('./ids.json');
+const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
 
 async function startAuction(interaction, details, client) {
@@ -14,7 +14,7 @@ async function startAuction(interaction, details, client) {
 			.setStyle('PRIMARY'),
 	);
 	await interaction.reply({ content: `Auction successfully launched for **"${details.title}"**!` });
-	const channel = interaction.guild.channels.cache.get(hangar.channels.barbaraTest);
+	const channel = interaction.guild.channels.cache.get(details.channel_id);
 	const message = await channel.send({ embeds: [embed], components: [row], fetchReply: true });
 
 	details.auction_id = message.id;
@@ -31,7 +31,7 @@ async function startAuction(interaction, details, client) {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get(hangar.channels.barbaraLogs);
+	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.auctionLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 

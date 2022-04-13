@@ -89,7 +89,6 @@ function updateBid(auctionId, user, bid) {
     
         connection.query(sql, (err) => {
 			if (err) throw err;
-			console.log('Barbara: Bid Updated!');
 			connection.end();
         });
     });
@@ -142,10 +141,52 @@ function getAuction(auction_id, callback) {
 	});
 }
 
+function updateEndTime(auctionId, endDate) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `UPDATE auctions SET end_date = '${endDate}' WHERE auction_id = '${auctionId}';`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.end();
+        });
+    });
+}
+
+function addToBidHistory(auctionId, bidderId, bid) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `INSERT INTO bid_history (auction_id, bidder_id, bid) VALUES ('${auctionId}', '${bidderId}', '${bid}');`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.end();
+        });
+    });
+}
+
 module.exports = {
 	saveAuction,
 	checkMiles,
 	updateBid,
 	getAuctions,
-	getAuction
+	getAuction,
+	updateEndTime,
+	addToBidHistory,
 };

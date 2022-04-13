@@ -25,16 +25,15 @@ module.exports = {
 	async execute(interaction, client) {
 		// Role Checker
 		const roles = interaction.member.roles.cache;
-		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(hangar.roles.aircraftEngineers)) {
+		if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(concorde.roles.aircraftEngineers) || roles.has(hangar.roles.aircraftEngineers)) {
 			const title = interaction.options.getString('title');
 			let minimum_bid = interaction.options.getInteger('minimum-bid');
 			let duration = interaction.options.getString('duration');
 			let channel_id = interaction.options.getChannel('channel');
-			
 			// Set Default Values
 			if (!minimum_bid) minimum_bid = 500;
 			if (!duration) duration = '24h';
-			if (!channel_id) channel_id = hangar.channels.barbaraTest;
+			if (!channel_id) channel_id = concorde.channels.auctions;
 			else channel_id = channel_id.id;
 
 			// Check for valid Duration

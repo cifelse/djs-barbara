@@ -11,7 +11,7 @@ const ids = require('./src/utils/ids.json');
 const ms = require('ms');
 const discordModals = require('discord-modals');
 const { submitBid, scheduleAuction } = require('./src/utils/auction-handler');
-const { checkMiles, updateBid, getAuctions } = require('./src/database/auction-db');
+const { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } = require('./src/database/auction-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
 
 // Create client instance
@@ -95,46 +95,53 @@ client.on('interactionCreate', async interaction => {
 
 client.on('modalSubmit', async (modal) => {
     if (modal.customId === 'bid') {
-		// Get necessary data 
+		// Get necessary data
+		await modal.deferReply({ ephemeral: true });
         const user = modal.user;
 		const auctionId = modal.message.id;
-		let response = modal.getTextInputValue('bid-input');
+		let bid = modal.getTextInputValue('bid-input');
 
 		// If the response is valid
-		if (/^\d+$/.test(response)) {
-			response = parseInt(response);
+		if (/^\d+$/.test(bid)) {
+			bid = parseInt(bid);
 			const embed = modal.message.embeds[0];
 			let value, invalidAmount;
 			embed.fields.forEach(field => {
 				if (field.name === '_ _\nMinimum Bid') {
 					value = field.value.replace(/[^\d]+/gi, '');
-					if (response < parseInt(value)) invalidAmount = true;
+					if (bid < parseInt(value)) invalidAmount = true;
 				}
 				if (field.name === '_ _\nBid') {
 					// Get Current Bid Value
 					value = field.value.replace(/[^\d]+/gi, '');
 					// Check Amount if Less than Current Bid Value
-					if (response <= parseInt(value)) invalidAmount = true;
+					if (bid <= parseInt(value)) invalidAmount = true;
 				}
 			});
 			if (invalidAmount) {
-				await modal.reply({ content: `Bid should be more than ${value}`, ephemeral: true });
+				await modal.followUp({ content: `Bid should be more than ${value} MILES.`, ephemeral: true });
 				return;
 			}
 			checkMiles(user.id, async userData => {
 				let fields, spliceValue;
-				if (userData.miles < response) {
-					await modal.reply({ content: `You do not have enough to bid ${response} MILES.`, ephemeral: true });
+
+				if (userData.miles < bid) {
+					await modal.followUp({ content: `You do not have enough to bid ${bid} MILES.`, ephemeral: true });
 					return;
 				}
-				// Check if time remaining is 10 minutes
+
+				// Get Necessary data for auction
 				const auction = client.auctionSchedules.find(auction => auction.title === embed.title);
-				const dateDifference = Math.abs(Date.parse(auction.endDate) - Date.now());
+				const endDate = Date.parse(auction.endDate);
+				const dateDifference = Math.abs(endDate - Date.now());
 				const minutes = Math.round(dateDifference / 60000);
-				console.log({minutes});
+
+				// Reschedule Bidding if duration is less than or equal 10 minutes
 				if (minutes <= 10) {
-					const newEndDate = new Date(Date.now() + ms('10m'));
+					const newEndDate = new Date(endDate + ms('10m'));
+					auction.endDate = newEndDate;
 					auction.reschedule(newEndDate);
+					updateEndTime(auctionId, newEndDate);
 					spliceValue = 0;
 					fields = [
 						{
@@ -149,7 +156,7 @@ client.on('modalSubmit', async (modal) => {
 						},
 						{
 							name: '_ _\nBid',
-							value: `${response} MILES`,
+							value: `${bid} MILES`,
 							inline: true,
 						},
 					];
@@ -164,20 +171,22 @@ client.on('modalSubmit', async (modal) => {
 						},
 						{
 							name: '_ _\nBid',
-							value: `${response} MILES`,
+							value: `${bid} MILES`,
 							inline: true,
 						},
 					];
 				}
+				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
 				modal.message.edit({ embeds: [embed] });
-				updateBid(auctionId, user, response);
-				await modal.reply({ content: `You have successfully bidded ${response} MILES.`, ephemeral: true });
+				updateBid(auctionId, user, bid);
+				addToBidHistory(auctionId, user.id, bid);
+				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
 			});
 		}
 		// If the response is invalid
 		else {
-			await modal.reply({ content: 'You entered an invalid amount.', ephemeral: true });
+			await modal.followUp({ content: 'You entered an invalid amount.', ephemeral: true });
 		}
     }
 });
