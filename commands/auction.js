@@ -13,7 +13,7 @@ module.exports = {
 			.setRequired(true))
 		.addIntegerOption(option => option.setName('minimum-bid')
 			.setDescription('Enter number of minimum bid.')
-			.setMinValue(500)
+			.setMinValue(200)
 			.setRequired(false))
 		.addStringOption(option => option.setName('duration')
 		.setDescription('Enter duration of auction.')
@@ -31,7 +31,7 @@ module.exports = {
 			let duration = interaction.options.getString('duration');
 			let channel_id = interaction.options.getChannel('channel');
 			// Set Default Values
-			if (!minimum_bid) minimum_bid = 500;
+			if (!minimum_bid) minimum_bid = 200;
 			if (!duration) duration = '24h';
 			if (!channel_id) channel_id = concorde.channels.auctions;
 			else channel_id = channel_id.id;
