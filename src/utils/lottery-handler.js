@@ -2,7 +2,7 @@ const { MessageButton, MessageActionRow, MessageEmbed } = require('discord.js');
 const { editEmbed } = require('./embeds');
 const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
-const { saveLottery, getLotteryEntries, getGamblers, insertGambler, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles } = require('../database/lottery-db');
+const { saveLottery, getLotteryEntries, getGamblers, insertGambler, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode } = require('../database/lottery-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 
@@ -191,59 +191,108 @@ function determineWinners(users, winnerCount) {
     return winners;
 }
 
-async function checkEligibility(interaction) {
-	if (interaction.user.bot) return false;
-
-	const requirementsField = interaction.message.embeds[0].fields.find(field => field.value.includes('Free for All'));
-	if (requirementsField) return true;
-
-	const eligible = interaction.member.roles.cache.some(role => role.id === concorde.roles.frequentFlyer || role.id === concorde.roles.multiplier.premiumEcon || role.id === concorde.roles.multiplier.businessClass || role.id === concorde.roles.multiplier.jetsetters);
-
-	return eligible;
-}
-
-async function enterLottery(interaction) {
-	const eligible = await checkEligibility(interaction);
-	if (!eligible) {
-		await interaction.reply({ content: 'You are not eligible to participate in this lottery yet.', ephemeral: true });
-		return;
-	}
+function confirmBet(interaction) {
 	const lotteryId = interaction.message.id;
 	const discordId = interaction.user.id;
 
-	// Check how many tickets a passenger has in a lottery + check the max tickets of that lottery:
-	checkMaxTicketsAndEntries(lotteryId, discordId, async result => {
-		if (result.entries >= result.max_tickets) {
-			await interaction.reply({ content: 'You already reached the limit for bidding in this lottery.', ephemeral: true });
-			return;
-		}
+	getDataForBet(lotteryId, discordId, async lottery => {
 
 		let additionalFee = 25;
-		if (result.entries > 1) {
-			additionalFee *= result.entries;
-		}
-		const newFee = parseInt(result.entries) + additionalFee;
 
-		removeMiles(discordId, newFee, async exceeded => {
-			if (exceeded === null) {
-				await interaction.reply({ content: 'User does not have any MILES yet.', ephemeral: true });
+		if (lottery.entries <= 0) {
+			additionalFee = 0;
+		}
+		if (lottery.entries > 1) {
+			additionalFee *= lottery.entries;
+		}
+
+		const newFee = parseInt(lottery.price) + additionalFee;
+
+		const embed = {
+			description: `You're about to purchase a lottery ticket for **"${lottery.title}"** for **${newFee} MILES**. To continue, press the **Confirm** button below.`,
+			color: '80A3FF',
+			footer: { text: `Lottery ID: ${lotteryId}` },
+		}
+	
+		const buttons = new MessageActionRow();
+		buttons.addComponents(
+			new MessageButton()
+				.setStyle('SUCCESS')
+				.setLabel('Confirm')
+				.setCustomId('confirmBet')
+		);
+	
+		await interaction.reply({ embeds: [embed], components: [buttons], ephemeral: true });
+	});
+}
+
+async function enterLottery(interaction) {
+	await interaction.deferReply();
+	const lotteryId = interaction.message.embeds[0].footer.text.replace(/[^\d]+/gi, '');
+	const discordId = interaction.user.id;
+
+	getStrictMode(lotteryId, async lottery => {
+		const eligibleRole = interaction.member.roles.cache.some(role => role.id === concorde.roles.frequentFlyer || role.id === concorde.roles.multiplier.premiumEcon || role.id === concorde.roles.multiplier.businessClass || role.id === concorde.roles.multiplier.jetsetters);
+		const embed = interaction.message.embeds[0];
+		embed.setFooter({ text: ' ' });
+
+		if (interaction.user.bot || (lottery.strict_mode === 'on' && !eligibleRole)) {
+			embed.description = 'You are not eligible to participate in this lottery yet.';
+			await interaction.update({ embeds:[embed], components: [], ephemeral: true });
+			return;
+		}
+		
+		// Check how many tickets a passenger has in a lottery + check the max tickets of that lottery:
+		checkMaxTicketsAndEntries(lotteryId, discordId, async result => {
+			if (result.entries >= result.max_tickets) {
+				embed.description = 'You have reached the maximum number of tickets for this lottery.';
+				await interaction.update({ embeds:[embed], components: [], ephemeral: true });
 				return;
 			}
-			else if (exceeded) {
-				await interaction.reply({ content: 'Invalid MILES quantity. You can\'t remove more than the user\'s current balance.', ephemeral: true });
-				return
+
+			let additionalFee = 25;
+
+			if (result.entries <= 0) {
+				additionalFee = 0;
+			}
+			if (result.entries > 1) {
+				additionalFee *= result.entries;
 			}
 
-			// Accept Entry and Insert to Database
-			insertGambler(lotteryId, discordId);
-			updateLotteryEntries(lotteryId);
-			await interaction.reply({ content: 'You have successfully entered the Lottery!', ephemeral: true });
+			const newFee = parseInt(result.price) + additionalFee;
+
+			removeMiles(discordId, newFee, async exceeded => {
+				if (exceeded === null) {
+					embed.description = `User does not have any MILES yet.`;
+					await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+					return;
+				}
+				else if (exceeded) {
+					embed.description = `Invalid MILES quantity. You can\'t remove more than the user\'s current balance.`;
+					await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+					return;
+				}
+
+				// Accept Entry and Insert to Database
+				insertGambler(lotteryId, discordId);
+				updateLotteryEntries(lotteryId);
+				await completeBet(interaction);
+			});
 		});
 	});
+}
+
+async function completeBet(interaction) {
+	const embed = interaction.message.embeds[0];
+	const fragments = embed.description.split("**");
+	embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉`;
+	embed.setFooter({ text: ' ' });
+	await interaction.update({ embeds: [embed], components:[] });
 }
 
 module.exports = {
 	startLottery,
 	scheduleLottery,
-	enterLottery
+	enterLottery,
+	confirmBet
 };

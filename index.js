@@ -12,7 +12,7 @@ const ms = require('ms');
 const discordModals = require('discord-modals');
 const { submitBid, scheduleAuction } = require('./src/utils/auction-handler');
 const { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } = require('./src/database/auction-db');
-const { enterLottery, scheduleLottery } = require('./src/utils/lottery-handler');
+const { enterLottery, scheduleLottery, confirmBet } = require('./src/utils/lottery-handler');
 const { getLotteries } = require('./src/database/lottery-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
 
@@ -94,6 +94,9 @@ client.on('interactionCreate', async interaction => {
             showModal(modal, { client, interaction });
 		}
 		if (interaction.customId === 'bet') {
+			confirmBet(interaction);
+		}
+		if (interaction.customId === 'confirmBet') {
 			enterLottery(interaction);
 		}
 	}

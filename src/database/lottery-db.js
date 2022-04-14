@@ -123,7 +123,6 @@ function getGamblers(lotteryId, callback) {
     
         connection.query(sql, (err, result) => {
 			if (err) throw err;
-			console.log('Barbara: Got all the gamblers!');
 			connection.end();
             callback(result);
         });
@@ -236,6 +235,46 @@ function removeMiles(discordId, quantity, callback) {
     });
 }
 
+function getDataForBet(lotteryId, discordId, callback) {
+    const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `SELECT l.title, l.price, COUNT(*) as 'entries' FROM lottery l JOIN gamblers g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
+        connection.query(sql, (err, result) => {
+			if (err) throw err;
+			connection.end();
+            callback(result[0]);
+        });
+    });
+}
+
+function getStrictMode(lotteryId, callback) {
+    const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `SELECT strict_mode FROM lottery WHERE lottery_id = '${lotteryId}';`;
+        connection.query(sql, (err, result) => {
+			if (err) throw err;
+			connection.end();
+            callback(result[0]);
+        });
+    });
+}
+
 module.exports = {
 	saveLottery,
     getLotteries,
@@ -245,5 +284,7 @@ module.exports = {
 	getGamblers,
     checkMaxTicketsAndEntries,
     checkExisting,
-    removeMiles
+    removeMiles,
+    getDataForBet,
+    getStrictMode,
 }

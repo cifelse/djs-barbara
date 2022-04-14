@@ -52,7 +52,7 @@ module.exports = {
 			if (!duration) duration = '24h';
 			if (!price) price = 50;
 			if (!max_tickets) max_tickets = 1;
-			if (!all) all = 'on';
+			if (!all) all = 'off';
 			if (!channelId) channelId = hangar.channels.barbaraTest;
 			else channelId = channelId.id;
 
