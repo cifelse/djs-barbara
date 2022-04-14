@@ -12,6 +12,8 @@ const ms = require('ms');
 const discordModals = require('discord-modals');
 const { submitBid, scheduleAuction } = require('./src/utils/auction-handler');
 const { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } = require('./src/database/auction-db');
+const { enterLottery, scheduleLottery } = require('./src/utils/lottery-handler');
+const { getLotteries } = require('./src/database/lottery-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
 
 // Create client instance
@@ -40,9 +42,10 @@ client.once('ready', async bot => {
 	console.log(`Barbara: I'm Ready! Logged in as ${bot.user.tag}`);
 	bot.user.setPresence({ activities: [{ name: 'Concorde Chill Bar', type:'LISTENING' }] });
 	
-	// Schedule Giveaways and Auctions
+	// Schedule Giveaways, Auctions and Lotteries
 	getGiveaways(giveaways => scheduleGiveaway(client, giveaways));
 	getAuctions(auctions => scheduleAuction(client, auctions));
+	getLotteries(lotteries => scheduleLottery(client, lotteries));
 
 	disableRerolls.start();
 	gm.start();
@@ -89,6 +92,9 @@ client.on('interactionCreate', async interaction => {
                 ]);
 
             showModal(modal, { client, interaction });
+		}
+		if (interaction.customId === 'bet') {
+			enterLottery(interaction);
 		}
 	}
 });

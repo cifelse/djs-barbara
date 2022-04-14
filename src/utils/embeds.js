@@ -187,4 +187,22 @@ module.exports.editEmbed = {
 			color: 'f1f10b',
 		};
 	},
+	lotteryEmbed: (interaction, lotteryDetails) => {
+		const lotteryEmbed = new MessageEmbed();
+		lotteryEmbed.setColor('#80A3FF')
+		.setTitle(lotteryDetails.title)
+		.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
+		.setDescription('**You can now use your MILES to enter the lotteries in Concorde!** Unlike the Auctions, everyone is able to win the Whitelist Spots fairly.\n\n **Click 🎫 to enter the lottery!**')
+		.addFields(
+			{ name: '_ _\nDuration', value: `<t:${Math.floor(lotteryDetails.end_date.getTime() / 1000)}:R>`, inline: true },
+			{ name: '_ _\nWinner/s', value: `${lotteryDetails.num_winners}`, inline: true },
+			{ name: '_ _\nMax Tickets', value: `${lotteryDetails.max_tickets}`, inline: true },
+			{ name: '_ _\nPrice of a Single Ticket', value: `For this lottery, a single ticket costs **${lotteryDetails.price} MILES.**`, inline: false },
+		);
+
+		if (lotteryDetails.strict_mode === 'on') lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
+		else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
+		
+		return lotteryEmbed;
+	},
 };
