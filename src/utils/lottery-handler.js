@@ -2,7 +2,7 @@ const { MessageButton, MessageActionRow, MessageEmbed } = require('discord.js');
 const { editEmbed } = require('./embeds');
 const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
-const { saveLottery, getLotteryEntries, getGamblers, insertGambler, updateLotteryEntries, checkMaxTicketsAndEntries } = require('../database/lottery-db');
+const { saveLottery, getLotteryEntries, getGamblers, insertGambler, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles } = require('../database/lottery-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 
@@ -212,11 +212,33 @@ async function enterLottery(interaction) {
 	const discordId = interaction.user.id;
 
 	// Check how many tickets a passenger has in a lottery + check the max tickets of that lottery:
-	checkMaxTicketsAndEntries(lotteryId, discordId, result => {
-		console.log(result);
-		// Accept Entry and Insert to Database
-		insertGambler(lotteryId, discordId);
-		updateLotteryEntries(lotteryId);
+	checkMaxTicketsAndEntries(lotteryId, discordId, async result => {
+		if (result.entries >= result.max_tickets) {
+			await interaction.reply({ content: 'You already reached the limit for bidding in this lottery.', ephemeral: true });
+			return;
+		}
+
+		let additionalFee = 25;
+		if (result.entries > 1) {
+			additionalFee *= result.entries;
+		}
+		const newFee = parseInt(result.entries) + additionalFee;
+
+		removeMiles(discordId, newFee, async exceeded => {
+			if (exceeded === null) {
+				await interaction.reply({ content: 'User does not have any MILES yet.', ephemeral: true });
+				return;
+			}
+			else if (exceeded) {
+				await interaction.reply({ content: 'Invalid MILES quantity. You can\'t remove more than the user\'s current balance.', ephemeral: true });
+				return
+			}
+
+			// Accept Entry and Insert to Database
+			insertGambler(lotteryId, discordId);
+			updateLotteryEntries(lotteryId);
+			await interaction.reply({ content: 'You have successfully entered the Lottery!', ephemeral: true });
+		});
 	});
 }
 

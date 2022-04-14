@@ -141,14 +141,98 @@ function checkMaxTicketsAndEntries(lotteryId, discordId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT l.max_tickets, COUNT(*) as 'entries' FROM lottery l JOIN gamblers g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
-    
+        const sql = `SELECT l.max_tickets, l.price, COUNT(*) as 'entries' FROM lottery l JOIN gamblers g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
         connection.query(sql, (err, result) => {
 			if (err) throw err;
-			console.log('Barbara: Got all the gamblers!');
 			connection.end();
-            callback(result);
+            callback(result[0]);
         });
+    });
+}
+
+function checkExisting(discordId, callback) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+	connection.connect(err => {
+        if (err) throw err;
+    
+		let sql = `SELECT * FROM miles WHERE discord_id = "${discordId}"`
+        
+		connection.query(sql, (err, res) => {
+			if (err) throw err;
+			if (!res[0]) {
+				connection.end();
+				callback(res);
+				return;
+			}
+			connection.end();
+			callback(res);
+		});
+	});
+}
+
+function checkExceedingQuantity(discordId, quantity, callback) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+	connection.connect(err => {
+        if (err) throw err;
+		sql = `SELECT miles FROM miles WHERE miles < ${quantity} AND discord_id = ${discordId}`;
+		connection.query(sql, (err, res) => {
+			if (err) throw err;
+			if (!res[0]) {
+				connection.end();
+				callback(false);
+				return;
+			}
+			connection.end();
+			callback(true);
+			return;
+		});
+	});
+}
+
+function removeMiles(discordId, quantity, callback) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+	connection.connect(err => {
+        if (err) throw err;
+		checkExisting(discordId, existing => {
+			if (!existing[0]) {
+				connection.end();
+				callback(null)
+				return;
+			}
+			checkExceedingQuantity(discordId, quantity, exceeded => {
+				if (exceeded) {
+					callback(true);
+					connection.end();
+					return;
+				}
+				sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
+				connection.query(sql, (err) => {
+				if (err) throw err;
+				console.log(`Blake: Deducted ${quantity} miles to user: ${discordId}`);
+				connection.end();
+				callback(false);
+				return;
+			});
+			})
+		});
     });
 }
 
@@ -159,5 +243,7 @@ module.exports = {
 	insertGambler,
 	getLotteryEntries,
 	getGamblers,
-    checkMaxTicketsAndEntries
+    checkMaxTicketsAndEntries,
+    checkExisting,
+    removeMiles
 }

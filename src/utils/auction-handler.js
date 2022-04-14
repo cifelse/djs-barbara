@@ -31,7 +31,7 @@ async function startAuction(interaction, details, client) {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.auctionLogs);
+	const logsChannel = interaction.guild.channels.cache.get(hangar.channels.barbaraLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
@@ -46,11 +46,11 @@ async function scheduleAuction(client, details) {
 		const { auction_id, title, end_date, channel_id } = details[i];
 		console.log('Barbara: Alert! I\'m Scheduling an Auction for', end_date);
 		
-		const channel = client.channels.cache.get(channel_id);
-		let message;
-		if (channel) message = await channel.messages.fetch(auction_id);
-	
-		const schedule = scheduleJob(end_date, () => {
+		const schedule = scheduleJob(end_date, async () => {
+			// Get Channel and Message
+			const channel = client.channels.cache.get(channel_id);
+			let message;
+			if (channel) message = await channel.messages.fetch(auction_id);
 			// Edit Embed
 			const embed = message.embeds[0];
 			embed.color = 'RED';
