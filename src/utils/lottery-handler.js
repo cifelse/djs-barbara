@@ -33,7 +33,7 @@ async function startLottery(interaction, details, client) {
 	embed.fields.forEach(field => {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
-	const logsChannel = interaction.guild.channels.cache.get(hangar.channels.barbaraLogs);
+	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.lotteryLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
@@ -227,7 +227,6 @@ function confirmBet(interaction) {
 }
 
 async function enterLottery(interaction) {
-	await interaction.deferReply();
 	const lotteryId = interaction.message.embeds[0].footer.text.replace(/[^\d]+/gi, '');
 	const discordId = interaction.user.id;
 

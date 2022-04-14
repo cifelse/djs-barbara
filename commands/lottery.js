@@ -53,7 +53,7 @@ module.exports = {
 			if (!price) price = 50;
 			if (!max_tickets) max_tickets = 1;
 			if (!all) all = 'off';
-			if (!channelId) channelId = hangar.channels.barbaraTest;
+			if (!channelId) channelId = concorde.channels.lottery;
 			else channelId = channelId.id;
 
 			// Check for valid Duration
