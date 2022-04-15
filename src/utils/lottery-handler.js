@@ -115,7 +115,7 @@ async function scheduleLottery(client, details) {
 						}
 
 						// Edit Lottery logs message
-						const serverLogs = client.channels.cache.get(hangar.channels.barbaraLogs);
+						const serverLogs = client.channels.cache.get(concorde.channels.lotteryLogs);
 						let logMessage;
 						if (serverLogs) {
 							const logMessages = await serverLogs.messages.fetch({ limit: 20 });
