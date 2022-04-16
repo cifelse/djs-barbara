@@ -31,7 +31,7 @@ async function startAuction(interaction, details, client) {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get(hangar.channels.barbaraLogs);
+	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.auctionLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
