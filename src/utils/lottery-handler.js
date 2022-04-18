@@ -289,9 +289,59 @@ async function completeBet(interaction) {
 	await interaction.update({ embeds: [embed], components:[] });
 }
 
+async function rerollLottery(interaction) {
+	// Check Role
+	const roles = interaction.member.roles.cache;
+	if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(concorde.roles.aircraftEngineers) || roles.has(hangar.roles.aircraftEngineers)) {
+		let channel;
+		const messageId	= interaction.message.embeds[0].footer.text;
+		const title = interaction.message.embeds[0].title;
+		const fields = interaction.message.embeds[0].fields;
+		
+		await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
+		const response = await interaction.channel.awaitMessages({ max: 1 });
+		const { content } = response.first();
+		const numberChecker = /^\d+$/;
+
+		if (!numberChecker.test(content)) {
+			await interaction.channel.send({ content: 'You entered an invalid number, honey. Why don\'t you press that Reroll button again?' });
+			return;
+		}
+
+		fields.forEach(async field => {
+			if (field.name === '_ _\nChannel') {
+				channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
+			}
+		});
+
+		const winnerCount = content;
+
+		getGamblers(messageId, async users => {
+			const winners = determineWinners(users, winnerCount);
+			// Put winners in string
+			let winnerString = '';
+
+			if (winners.length > 0) {
+				winners.forEach(winner => {
+					winnerString += `<@${winner.discord_id}> `;
+				});
+			}
+			await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
+			await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
+			// Delete Response After Sending New Winners
+			response.first().delete();
+		});
+	}
+	else {
+		await interaction.reply({ content: 'You are not eligible to use this button', ephemeral: true });
+		return;
+	}
+}
+
 module.exports = {
 	startLottery,
 	scheduleLottery,
 	enterLottery,
-	confirmBet
+	confirmBet,
+	rerollLottery
 };

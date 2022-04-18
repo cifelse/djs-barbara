@@ -113,6 +113,10 @@ client.on('modalSubmit', async (modal) => {
 		// If the response is valid
 		if (/^\d+$/.test(bid)) {
 			bid = parseInt(bid);
+			if (bid % 50 !== 0) {
+				await modal.followUp({ content: `Invalid Input. Next Bids should be by 50s (ex. 200, 250, 300, 350, 400, ...)`, ephemeral: true });
+				return;
+			}
 			const embed = modal.message.embeds[0];
 			let value, invalidAmount;
 			embed.fields.forEach(field => {
