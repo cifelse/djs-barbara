@@ -231,11 +231,12 @@ async function enterLottery(interaction) {
 	const discordId = interaction.user.id;
 
 	getStrictMode(lotteryId, async lottery => {
-		const eligibleRole = interaction.member.roles.cache.some(role => role.id === concorde.roles.frequentFlyer || role.id === concorde.roles.multiplier.premiumEcon || role.id === concorde.roles.multiplier.businessClass || role.id === concorde.roles.multiplier.jetsetters);
+		const { frequentFlyer, multiplier: { premiumEcon, businessClass, jetsetters } } = concorde.roles;
+		const eligibleRole = interaction.member.roles.cache.hasAny(frequentFlyer, premiumEcon, businessClass, jetsetters);
 		const embed = interaction.message.embeds[0];
 		embed.setFooter({ text: ' ' });
 
-		if (interaction.user.bot || (lottery.strict_mode === 'on' && !eligibleRole)) {
+		if (interaction.user.bot || (lottery.ffa === 'off' && !eligibleRole)) {
 			embed.description = 'You are not eligible to participate in this lottery yet.';
 			await interaction.update({ embeds:[embed], components: [], ephemeral: true });
 			return;

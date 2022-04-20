@@ -12,7 +12,7 @@ function saveGiveaway(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO giveaways (title, giveaway_id, num_winners, num_entries, start_date, end_date, multiplier, strict_mode, channel_id) VALUES ('${details.title}', '${details.giveaway_id}', '${details.num_winners}', '${details.num_entries}', '${details.start_date}', '${details.end_date}', '${details.multiplier}', '${details.strict_mode}', '${details.channel_id}')`;
+        const sql = `INSERT INTO giveaways (title, giveaway_id, num_winners, num_entries, start_date, end_date, multiplier, ffa, channel_id) VALUES ('${details.title}', '${details.giveaway_id}', '${details.num_winners}', '${details.num_entries}', '${details.start_date}', '${details.end_date}', '${details.multiplier}', '${details.ffa}', '${details.channel_id}')`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;

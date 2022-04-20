@@ -12,7 +12,7 @@ function saveLottery(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO lottery (lottery_id, title, num_winners, num_entries, price, max_tickets, start_date, end_date, strict_mode, channel_id) VALUES ('${details.lottery_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.price}', '${details.max_tickets}', '${details.start_date}', '${details.end_date}', '${details.strict_mode}', '${details.channel_id}')`;
+        const sql = `INSERT INTO lottery (lottery_id, title, num_winners, num_entries, price, max_tickets, start_date, end_date, ffa, channel_id) VALUES ('${details.lottery_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.price}', '${details.max_tickets}', '${details.start_date}', '${details.end_date}', '${details.ffa}', '${details.channel_id}')`;
 		
         connection.query(sql, (err) => {
 			if (err) throw err;
@@ -266,7 +266,7 @@ function getStrictMode(lotteryId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT strict_mode FROM lottery WHERE lottery_id = '${lotteryId}';`;
+        const sql = `SELECT ffa FROM lottery WHERE lottery_id = '${lotteryId}';`;
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			connection.end();

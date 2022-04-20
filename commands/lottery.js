@@ -44,7 +44,7 @@ module.exports = {
 			let duration = interaction.options.getString('duration');
 			let price = interaction.options.getInteger('price');
 			let max_tickets = interaction.options.getInteger('max');
-			let all = interaction.options.getString('free-for-all');
+			let ffa = interaction.options.getString('free-for-all');
 			let channelId = interaction.options.getChannel('channel');
 
 			// Set default values for Giveaway Details
@@ -52,7 +52,7 @@ module.exports = {
 			if (!duration) duration = '24h';
 			if (!price) price = 50;
 			if (!max_tickets) max_tickets = 1;
-			if (!all) all = 'off';
+			if (!ffa) ffa = 'off';
 			if (!channelId) channelId = concorde.channels.lottery;
 			else channelId = channelId.id;
 
@@ -84,7 +84,7 @@ module.exports = {
 				max_tickets,
 				start_date,
 				end_date,
-				strict_mode: all, 
+				ffa, 
 				channel_id: channelId,
 			};
 

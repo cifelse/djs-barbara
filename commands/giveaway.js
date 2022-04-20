@@ -39,14 +39,14 @@ module.exports = {
 			let winnerCount = interaction.options.getInteger('winners');
 			let duration = interaction.options.getString('duration');
 			let multiplier = interaction.options.getString('multiplier');
-			let all = interaction.options.getString('free-for-all');
+			let ffa = interaction.options.getString('free-for-all');
 			let channelId = interaction.options.getChannel('channel');
 
 			// Set default values for Giveaway Details
 			if (!winnerCount) winnerCount = 1;
 			if (!duration) duration = '24h';
 			if (!multiplier) multiplier = 'off';
-			if (!all) all = 'off';
+			if (!ffa) ffa = 'off';
 			if (!channelId) channelId = concorde.channels.giveaway;
 			else channelId = channelId.id;
 
@@ -75,7 +75,7 @@ module.exports = {
 				duration,
 				multiplier,
 				end_date,
-				strict_mode: all, 
+				ffa, 
 				channel_id: channelId,
 			};
 
