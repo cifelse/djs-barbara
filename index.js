@@ -15,6 +15,7 @@ const { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } = r
 const { enterLottery, scheduleLottery, confirmBet } = require('./src/utils/lottery-handler');
 const { getLotteries } = require('./src/database/lottery-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
+const process = require('process');
 
 // Create client instance
 const client = new Client({ intents: [
