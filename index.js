@@ -100,6 +100,9 @@ client.on('interactionCreate', async interaction => {
 		if (interaction.customId === 'confirmBet') {
 			enterLottery(interaction);
 		}
+		if (interaction.customId === 'force-end') {
+			console.log(interaction.message.embeds[0]);
+		}
 	}
 });
 
@@ -204,6 +207,24 @@ client.on('modalSubmit', async (modal) => {
 		}
     }
 });
+
+async function forceEnd(channelId, messageId) {
+	// Get Channel and Message
+	const channel = client.channels.cache.get(channelId);
+	let message;
+	if (channel) message = await channel.messages.fetch(messageId);
+	// Edit Embed
+	const embed = message.embeds[0];
+	embed.color = 'RED';
+	const button = message.components[0].components[0];
+	button.setDisabled(true);
+	const newRow = new MessageActionRow();
+	newRow.addComponents(button);
+	message.edit({ embeds: [embed], components: [newRow] });
+	// Get Auction and announce winner
+	const deadline = `<t:${Math.floor(Date.now() / 1000) + (360 * 60)}:R>`
+	await channel.send(`Auction for **"RETRO ROLLERS AUCTION FOR 1 WL SPOT"** has ended and has been won by <@380324198238781441> with a bid of 350 MILES. You have until ${deadline} to pay your MILES to Concorde.\n\nPay your MILES by typing \`/pay-miles <MILES>\` over at the <#956165537820459008> channel.`);
+}
 
 // Schedule Message
 const gm = new CronJob('0 0 11/22 * * *', () => {
