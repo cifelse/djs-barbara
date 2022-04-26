@@ -47,7 +47,7 @@ function insertParticipant(participant) {
             }
 
             // Insert a Record to the Table
-            sql = `INSERT INTO participants (giveaway_id, discord_id) VALUES ('${giveawayId}', '${discordId}')`;
+            sql = `INSERT INTO giveaway_entries (giveaway_id, discord_id) VALUES ('${giveawayId}', '${discordId}')`;
             con.query(sql, err => {
                 if (err) throw err;
                 console.log('Barbara: one (1) passenger is entered into the pool!');
@@ -91,7 +91,7 @@ function getParticipants(giveawayId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT * FROM participants WHERE giveaway_id = "${giveawayId}"`;
+        const sql = `SELECT * FROM giveaway_entries WHERE giveaway_id = "${giveawayId}"`;
     
         connection.query(sql, (err, result) => {
 			if (err) throw err;
@@ -113,7 +113,7 @@ function checkDuplicateParticipant(giveawayId, participantId, callback) {
     con.connect(err => {
         if (err) throw err;
         
-        const sql = `SELECT * FROM participants WHERE giveaway_id = ${giveawayId} AND discord_id = ${participantId}`;
+        const sql = `SELECT * FROM giveaway_entries WHERE giveaway_id = ${giveawayId} AND discord_id = ${participantId}`;
 
         con.query(sql, (err, res) => {
             if (err) throw err;
