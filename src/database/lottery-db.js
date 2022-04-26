@@ -12,7 +12,7 @@ function saveLottery(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO lottery (lottery_id, title, num_winners, num_entries, price, max_tickets, start_date, end_date, ffa, channel_id) VALUES ('${details.lottery_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.price}', '${details.max_tickets}', '${details.start_date}', '${details.end_date}', '${details.ffa}', '${details.channel_id}')`;
+        const sql = `INSERT INTO lotteries (lottery_id, title, num_winners, num_entries, price, max_tickets, miles_burned, start_date, end_date, ffa, channel_id) VALUES ('${details.lottery_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.price}', '${details.max_tickets}', '0', '${details.start_date}', '${details.end_date}', '${details.ffa}', '${details.channel_id}')`;
 		
         connection.query(sql, (err) => {
 			if (err) throw err;
@@ -33,7 +33,7 @@ function getLotteries(callback) {
     con.connect(err => {
         if (err) throw err;
         
-        const sql = 'SELECT * FROM lottery';
+        const sql = 'SELECT * FROM lotteries';
 
         con.query(sql, (err, res) => {
             if (err) throw err;
@@ -54,7 +54,7 @@ function updateLotteryEntries(lotteryId) {
     con.connect(err => {
         if (err) throw err;
         // Increment Entries
-        const sql = `UPDATE lottery SET num_entries = num_entries + 1 WHERE lottery_id = '${lotteryId}'`;
+        const sql = `UPDATE lotteries SET num_entries = num_entries + 1 WHERE lottery_id = '${lotteryId}'`;
         
         con.query(sql, (err) => {
             if (err) throw err;
@@ -64,7 +64,7 @@ function updateLotteryEntries(lotteryId) {
     });
 }
 
-function insertGambler(lotteryId, discordId) {
+function insertLotteryEntry(lotteryId, discordId, price) {
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
@@ -75,7 +75,7 @@ function insertGambler(lotteryId, discordId) {
     con.connect(err => {
         if (err) throw err;
             // Insert a Record to the Table
-            sql = `INSERT INTO gamblers (lottery_id, discord_id) VALUES ('${lotteryId}', '${discordId}')`;
+            sql = `INSERT INTO lottery_entries (lottery_id, discord_id, price) VALUES ('${lotteryId}', '${discordId}', '${price}')`;
 			
             con.query(sql, err => {
                 if (err) throw err;
@@ -98,7 +98,7 @@ function getLotteryEntries(lotteryId, callback) {
     con.connect(err => {
         if (err) throw err;
         
-        const sql = `SELECT num_entries FROM lottery WHERE lottery_id = ${lotteryId}`;
+        const sql = `SELECT num_entries FROM lotteries WHERE lottery_id = ${lotteryId}`;
 
         con.query(sql, (err, res) => {
             if (err) throw err;
@@ -119,7 +119,7 @@ function getGamblers(lotteryId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT * FROM gamblers WHERE lottery_id = "${lotteryId}"`;
+        const sql = `SELECT * FROM lottery_entries WHERE lottery_id = "${lotteryId}"`;
     
         connection.query(sql, (err, result) => {
 			if (err) throw err;
@@ -140,7 +140,7 @@ function checkMaxTicketsAndEntries(lotteryId, discordId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT l.max_tickets, l.price, COUNT(*) as 'entries' FROM lottery l JOIN gamblers g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
+        const sql = `SELECT l.max_tickets, l.price, COUNT(*) as 'entries' FROM lotteries l JOIN lottery_entries g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			connection.end();
@@ -246,7 +246,7 @@ function getDataForBet(lotteryId, discordId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT l.title, l.price, COUNT(*) as 'entries' FROM lottery l JOIN gamblers g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
+        const sql = `SELECT l.title, l.price, COUNT(*) as 'entries' FROM lotteries l JOIN lottery_entries g ON l.lottery_id = g.lottery_id WHERE l.lottery_id = '${lotteryId}' AND g.discord_id = '${discordId}';`;
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			connection.end();
@@ -266,7 +266,7 @@ function getStrictMode(lotteryId, callback) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `SELECT ffa FROM lottery WHERE lottery_id = '${lotteryId}';`;
+        const sql = `SELECT ffa FROM lotteries WHERE lottery_id = '${lotteryId}';`;
         connection.query(sql, (err, result) => {
 			if (err) throw err;
 			connection.end();
@@ -279,7 +279,7 @@ module.exports = {
 	saveLottery,
     getLotteries,
 	updateLotteryEntries,
-	insertGambler,
+	insertLotteryEntry,
 	getLotteryEntries,
 	getGamblers,
     checkMaxTicketsAndEntries,
