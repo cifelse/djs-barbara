@@ -48,7 +48,7 @@ async function scheduleAuction(client, details) {
 		
 		const schedule = scheduleJob(end_date, async () => {
 			// Get Channel and Message
-			const channel = client.channels.cache.get(channel_id);
+			const channel = await client.channels.fetch(channel_id);
 			let message;
 			if (channel) message = await channel.messages.fetch(auction_id);
 			// Edit Embed

@@ -2,7 +2,7 @@ const { MessageButton, MessageActionRow, MessageEmbed } = require('discord.js');
 const { editEmbed } = require('./embeds');
 const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
-const { saveLottery, getLotteryEntries, getGamblers, insertGambler, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode } = require('../database/lottery-db');
+const { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry } = require('../database/lottery-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 
@@ -274,7 +274,7 @@ async function enterLottery(interaction) {
 				}
 
 				// Accept Entry and Insert to Database
-				insertGambler(lotteryId, discordId);
+				insertLotteryEntry(lotteryId, discordId, newFee);
 				updateLotteryEntries(lotteryId);
 				await completeBet(interaction);
 			});

@@ -63,7 +63,6 @@ module.exports = {
 				await interaction.reply({ content: 'You entered an invalid duration' });
 				return;
 			}
-
 			// Check for apostrophe in Title and make it ALL CAPS
 			let modifiedTitle = title;
 			for (let i = 0; i < title.length; i++) {

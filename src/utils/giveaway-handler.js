@@ -23,7 +23,7 @@ async function startGiveaway(interaction, details, client) {
 	details.num_entries = 0;
 	
 	saveGiveaway(details);
-	// scheduleGiveaway(client, [details]);
+	scheduleGiveaway(client, [details]);
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
 
 	// Send A Copy on Server Logs
