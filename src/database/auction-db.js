@@ -172,7 +172,7 @@ function addToBidHistory(auctionId, bidderId, bid) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO bid_history (auction_id, bidder_id, bid) VALUES ('${auctionId}', '${bidderId}', '${bid}');`;
+        const sql = `INSERT INTO auction_entries (auction_id, bidder_id, bid) VALUES ('${auctionId}', '${bidderId}', '${bid}');`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
