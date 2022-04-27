@@ -18,7 +18,6 @@ async function startAuction(interaction, details, client) {
 	const message = await channel.send({ embeds: [embed], components: [row], fetchReply: true });
 
 	details.auction_id = message.id;
-	details.start_date = new Date().toString();
 	
 	saveAuction(details);
 	scheduleAuction(client, [details]);
@@ -38,18 +37,20 @@ async function startAuction(interaction, details, client) {
 async function scheduleAuction(client, details) {
 	// Get Details of Auctions
 	for (let i = 0; i < details.length; i++) {
+		const { auction_id, title, end_date, channel_id } = details[i];
+
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(details[i].end_date);
+		const endDate = Date.parse(end_date);
 
 		if (endDate < currentDate) continue;
 
-		const { auction_id, title, end_date, channel_id } = details[i];
-		console.log('Barbara: Alert! I\'m Scheduling an Auction for', end_date);
+		console.log('Barbara: Alert! I\'m Scheduling an Auction for', title);
 		
-		const schedule = scheduleJob(end_date, async () => {
+		const scheduledEndDate = convertTimestampToDate(end_date);
+		const schedule = scheduleJob(scheduledEndDate, async () => {
 			// Get Channel and Message
-			const channel = await client.channels.fetch(channel_id);
 			let message;
+			const channel = await client.channels.fetch(channel_id);
 			if (channel) message = await channel.messages.fetch(auction_id);
 			// Edit Embed
 			const embed = message.embeds[0];
@@ -70,8 +71,10 @@ async function scheduleAuction(client, details) {
 			});
 			
 		});
+
+		// Get title and end date for Rescheduling Bidding in Index
 		schedule.title = title;
-		schedule.endDate = end_date;
+		schedule.endDate = scheduledEndDate;
 		client.auctionSchedules.push(schedule);
 	}
 }
