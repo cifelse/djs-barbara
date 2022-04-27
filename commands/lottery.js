@@ -3,6 +3,7 @@ const { ChannelType } = require('discord-api-types/v9');
 const ms = require('ms');
 const { concorde, hangar } = require('../src/utils/ids.json');
 const { startLottery } = require('../src/utils/lottery-handler');
+const { convertDateToTimestamp } = require('../src/utils/date-handler');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -72,8 +73,10 @@ module.exports = {
 			}
 			modifiedTitle = modifiedTitle.toUpperCase();
 
-			const start_date = new Date(Date.now());
-			const end_date = new Date(Date.now() + ms(duration));
+			let start_date = new Date(Date.now());
+			let end_date = new Date(Date.now() + ms(duration));
+			start_date = convertDateToTimestamp(start_date);
+			end_date = convertDateToTimestamp(end_date);
 
 			// Gather all Giveaway Details
 			const details = { 

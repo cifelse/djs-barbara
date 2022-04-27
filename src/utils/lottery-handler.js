@@ -5,6 +5,7 @@ const { scheduleJob } = require('node-schedule');
 const { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry } = require('../database/lottery-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
+const { convertTimestampToDate } = require('./date-handler');
 
 async function startLottery(interaction, details, client) {
 	const embed = editEmbed.lotteryEmbed(interaction, details);
@@ -39,16 +40,17 @@ async function startLottery(interaction, details, client) {
 
 async function scheduleLottery(client, details) {
 	for (let i = 0; i < details.length; i++) {
+		const { title, num_winners, end_date, channel_id, lottery_id } = details[i];
+
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(details[i].end_date);
+		const endDate = Date.parse(end_date);
 
 		if (endDate < currentDate) continue;
-		const { title, num_winners, end_date, channel_id, lottery_id } = details[i];
 		
-		console.log('Barbara: Alert! I\'m Scheduling a Lottery for', end_date);
+		console.log('Barbara: Alert! I\'m Scheduling a Lottery for', title);
 		
-		const channel = client.channels.cache.get(channel_id);
 		let message;
+		const channel = client.channels.fetch(channel_id);
 		if (channel) message = await channel.messages.fetch(lottery_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
@@ -69,8 +71,9 @@ async function scheduleLottery(client, details) {
 			});
 		});
 		watchEntries.start();
-	
-		scheduleJob(end_date, async () => {
+		
+		const scheduledEndDate = convertTimestampToDate(end_date);
+		scheduleJob(scheduledEndDate, async () => {
 			watchEntries.stop();
 			getGamblers(lottery_id, async users => {
 				const winners = determineWinners(users, num_winners);
