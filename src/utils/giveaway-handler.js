@@ -2,7 +2,7 @@ const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
 const { scheduleJob } = require('node-schedule');
 const { concorde, hangar } = require('./ids.json');
 const { editEmbed } = require('./embeds');
-const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries } = require('../database/giveaway-db');
+const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways } = require('../database/giveaway-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 
@@ -21,8 +21,13 @@ async function startGiveaway(interaction, details, client) {
 	details.giveaway_id = message.id;
 	details.num_entries = 0;
 	
-	saveGiveaway(details);
-	scheduleGiveaway(client, [details]);
+	saveGiveaway(details, () => {
+		getGiveaways(giveaways => {
+			const lastItem = giveaways[giveaways.length - 1];
+			scheduleGiveaway(client, [lastItem]);
+		});
+	});
+	
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
 
 	// Send A Copy on Server Logs
@@ -33,23 +38,21 @@ async function startGiveaway(interaction, details, client) {
 	embed.fields.forEach(field => {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
-	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.serverLogs);
+	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.lotteryLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
 async function scheduleGiveaway(client, details) {
 	for (let i = 0; i < details.length; i++) {
 		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
-
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(end_date);
 
-		if (endDate < currentDate) continue;
+		if (end_date.getTime() < currentDate) continue;
 		
-		console.log('\nBarbara: Alert! I\'m Scheduling a Giveaway for', title);
+		console.log('Barbara: Alert! I\'m Scheduling a Giveaway for', title);
 		
 		let message;
-		const channel = client.channels.fetch(channel_id);
+		const channel = await client.channels.fetch(channel_id);
 		if (channel) message = await channel.messages.fetch(giveaway_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
@@ -71,8 +74,7 @@ async function scheduleGiveaway(client, details) {
 		});
 		watchEntries.start();
 	
-		const scheduledEndDate = convertTimestampToDate(end_date);
-		scheduleJob(scheduledEndDate, async () => {
+		scheduleJob(end_date, async () => {
 			watchEntries.stop();
 			getParticipants(giveaway_id, async users => {
 				const winners = determineWinners(users, num_winners);
@@ -117,7 +119,7 @@ async function scheduleGiveaway(client, details) {
 						}
 
 						// Edit Giveaway logs message
-						const serverLogs = client.channels.cache.get(concorde.channels.serverLogs);
+						const serverLogs = client.channels.cache.get(concorde.channels.lotteryLogs);
 						let logMessage;
 						if (serverLogs) {
 							const logMessages = await serverLogs.messages.fetch({ limit: 20 });

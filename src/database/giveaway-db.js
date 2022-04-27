@@ -1,7 +1,7 @@
 const mysql = require('mysql');
 
 // CREATING A GIVEAWAY AND SAVING IT TO DATABASE
-function saveGiveaway(details) {
+function saveGiveaway(details, callback) {
 	const connection = mysql.createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
@@ -12,12 +12,13 @@ function saveGiveaway(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO giveaways (giveaway_id, title, num_winners, num_entries, start_date, end_date, multiplier, ffa, channel_id) VALUES ('${details.giveaway_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.start_date}', '${details.end_date}', '${details.multiplier}', '${details.ffa}', '${details.channel_id}')`;
+        const sql = `INSERT INTO giveaways (giveaway_id, title, num_winners, num_entries, start_date, end_date, multiplier, ffa, channel_id) VALUES ('${details.giveaway_id}', '${details.title}', ${details.num_winners}, ${details.num_entries}, '${details.start_date}', '${details.end_date}', ${details.multiplier}, ${details.ffa}, '${details.channel_id}')`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
 			console.log('Barbara: I\'ve created a new giveaway!');
 			connection.end();
+            callback()
         });
     });
 }
@@ -129,6 +130,7 @@ function getGiveaways(callback) {
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
         database: 'customer_253110_giveaways',
+        timezone: 'Z'
     });
 
     con.connect(err => {

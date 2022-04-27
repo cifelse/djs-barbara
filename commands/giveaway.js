@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { ChannelType } = require('discord-api-types/v9');
 const ms = require('ms');
+const { convertDateToTimestamp } = require('../src/utils/date-handler');
 const { startGiveaway } = require('../src/utils/giveaway-handler');
 const { concorde, hangar } = require('../src/utils/ids.json');
 
@@ -20,11 +21,11 @@ module.exports = {
 			.setRequired(false))
 		.addStringOption(option => option.setName('multiplier')
 			.setDescription('Set multiplier to on or off')
-			.addChoices([['on', 'on'], ['off', 'off']])
+			.addChoices([['on', '1'], ['off', '0']])
 			.setRequired(false))
 		.addStringOption(option => option.setName('free-for-all')
 			.setDescription('Include everyone in the giveaway')
-			.addChoices([['on', 'on'], ['off', 'off']])
+			.addChoices([['on', '1'], ['off', '0']])
 			.setRequired(false))
 		.addChannelOption(option => option.setName('channel')
 			.setDescription('Enter the channel where you want to start the giveaway.')
@@ -45,8 +46,8 @@ module.exports = {
 			// Set default values for Giveaway Details
 			if (!winnerCount) winnerCount = 1;
 			if (!duration) duration = '24h';
-			if (!multiplier) multiplier = 'off';
-			if (!ffa) ffa = 'off';
+			if (!multiplier) multiplier = 0;
+			if (!ffa) ffa = 0;
 			if (!channelId) channelId = concorde.channels.giveaway;
 			else channelId = channelId.id;
 
@@ -83,7 +84,6 @@ module.exports = {
 				ffa,
 				channel_id: channelId,
 			};
-
 			// Confirm Giveaway
 			await startGiveaway(interaction, details, client);
 		}
