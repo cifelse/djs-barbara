@@ -1,7 +1,7 @@
 const mysql = require('mysql');
 
 // CREATING AN AUCTION AND SAVING IT TO DATABASE
-function saveAuction(details) {
+function saveAuction(details, callback) {
 	const connection = mysql.createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
@@ -12,12 +12,13 @@ function saveAuction(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO auctions (auction_id, title, minimum_bid, start_date, end_date, highest_bidder, bid, channel_id) VALUES ('${details.auction_id}', '${details.title}', '${details.minimum_bid}', '${details.start_date}', '${details.end_date}', null, null, '${details.channelId}');`;
+        const sql = `INSERT INTO auctions (auction_id, title, minimum_bid, start_date, end_date, highest_bidder, bid, channel_id) VALUES ('${details.auction_id}', '${details.title}', ${details.minimum_bid}, '${details.start_date}', '${details.end_date}', null, null, '${details.channel_id}');`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
 			console.log('Barbara: I\'ve created a new auction!');
 			connection.end();
+			callback();
         });
     });
 }
@@ -100,6 +101,7 @@ function getAuctions(callback) {
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
         database: 'customer_253110_giveaways',
+		timezone: 'Z',
     });
 
     con.connect(err => {

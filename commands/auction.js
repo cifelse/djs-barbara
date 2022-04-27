@@ -3,6 +3,7 @@ const { concorde, hangar } = require('../src/utils/ids.json');
 const ms = require('ms');
 const { startAuction } = require('../src/utils/auction-handler');
 const { ChannelType } = require('discord-api-types/v10');
+const { convertDateToTimestamp } = require('../src/utils/date-handler');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -66,7 +67,6 @@ module.exports = {
 				end_date,
 				channel_id
 			};
-
 			startAuction(interaction, details, client);
 		}
 		else {

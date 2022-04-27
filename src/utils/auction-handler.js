@@ -1,5 +1,5 @@
 const { MessageButton, MessageActionRow } = require('discord.js');
-const { saveAuction, getAuction } = require('../database/auction-db');
+const { saveAuction, getAuction, getAuctions } = require('../database/auction-db');
 const { editEmbed } = require('./embeds');
 const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
@@ -19,8 +19,12 @@ async function startAuction(interaction, details, client) {
 
 	details.auction_id = message.id;
 	
-	saveAuction(details);
-	scheduleAuction(client, [details]);
+	saveAuction(details, () => {
+		getAuctions(auctions => {
+			const lastItem = auctions[auctions.length - 1];
+			scheduleAuction(client, [lastItem]);
+		});
+	});
 
 	// Send A Copy on Server Logs
 	embed.description = `An auction has started. Go to this auction by [clicking here.](${message.url})`;
@@ -40,16 +44,15 @@ async function scheduleAuction(client, details) {
 		const { auction_id, title, end_date, channel_id } = details[i];
 
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(end_date);
 
-		if (endDate < currentDate) continue;
+		if (end_date.getTime() < currentDate) continue;
 
 		console.log('Barbara: Alert! I\'m Scheduling an Auction for', title);
 		
-		const scheduledEndDate = convertTimestampToDate(end_date);
-		const schedule = scheduleJob(scheduledEndDate, async () => {
+		const schedule = scheduleJob(end_date, async () => {
 			// Get Channel and Message
 			let message;
+			console.log(channel_id);
 			const channel = await client.channels.fetch(channel_id);
 			if (channel) message = await channel.messages.fetch(auction_id);
 			// Edit Embed
@@ -74,7 +77,7 @@ async function scheduleAuction(client, details) {
 
 		// Get title and end date for Rescheduling Bidding in Index
 		schedule.title = title;
-		schedule.endDate = scheduledEndDate;
+		schedule.endDate = end_date;
 		client.auctionSchedules.push(schedule);
 	}
 }

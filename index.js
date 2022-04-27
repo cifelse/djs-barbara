@@ -16,6 +16,7 @@ const { enterLottery, scheduleLottery, confirmBet } = require('./src/utils/lotte
 const { getLotteries } = require('./src/database/lottery-db');
 const { Modal, TextInputComponent, showModal } = discordModals;
 const process = require('process');
+const { convertDateToTimestamp } = require('./src/utils/date-handler');
 
 // Create client instance
 const client = new Client({ intents: [
@@ -155,10 +156,12 @@ client.on('modalSubmit', async (modal) => {
 
 				// Reschedule Bidding if duration is less than or equal 10 minutes
 				if (minutes <= 10) {
-					const newEndDate = new Date(endDate + ms('10s'));
+					let newEndDate = new Date(endDate + ms('10s'));
 					auction.endDate = newEndDate;
 					auction.reschedule(newEndDate);
-					updateEndTime(auctionId, newEndDate);
+					
+					const timestampEndDate = convertDateToTimestamp(newEndDate);
+					updateEndTime(auctionId, timestampEndDate);
 					spliceValue = 0;
 					fields = [
 						{
