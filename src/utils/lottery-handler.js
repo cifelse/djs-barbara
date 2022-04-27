@@ -2,7 +2,7 @@ const { MessageButton, MessageActionRow, MessageEmbed } = require('discord.js');
 const { editEmbed } = require('./embeds');
 const { hangar, concorde } = require('./ids.json');
 const { scheduleJob } = require('node-schedule');
-const { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry } = require('../database/lottery-db');
+const { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } = require('../database/lottery-db');
 const { CronJob } = require('cron');
 const ids = require('./ids.json');
 const { convertTimestampToDate } = require('./date-handler');
@@ -22,8 +22,12 @@ async function startLottery(interaction, details, client) {
 	details.lottery_id = message.id;
 	details.num_entries = 0;
 	
-	saveLottery(details);
-	scheduleLottery(client, [details]);
+	saveLottery(details, () => {
+		getLotteries(lotteries => {
+			const lastItem = lotteries[lotteries.length - 1];
+			scheduleLottery(client, [lastItem]);
+		});
+	});
 	await interaction.reply({ content: `Lottery successfully launched for **"${details.title}"**!` });
 
 	// Send A Copy on Server Logs
@@ -41,16 +45,14 @@ async function startLottery(interaction, details, client) {
 async function scheduleLottery(client, details) {
 	for (let i = 0; i < details.length; i++) {
 		const { title, num_winners, end_date, channel_id, lottery_id } = details[i];
-
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(end_date);
 
-		if (endDate < currentDate) continue;
+		if (end_date.getTime() < currentDate) continue;
 		
 		console.log('Barbara: Alert! I\'m Scheduling a Lottery for', title);
 		
 		let message;
-		const channel = client.channels.fetch(channel_id);
+		const channel = await client.channels.fetch(channel_id);
 		if (channel) message = await channel.messages.fetch(lottery_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
@@ -72,8 +74,7 @@ async function scheduleLottery(client, details) {
 		});
 		watchEntries.start();
 		
-		const scheduledEndDate = convertTimestampToDate(end_date);
-		scheduleJob(scheduledEndDate, async () => {
+		scheduleJob(end_date, async () => {
 			watchEntries.stop();
 			getGamblers(lottery_id, async users => {
 				const winners = determineWinners(users, num_winners);
@@ -239,7 +240,9 @@ async function enterLottery(interaction) {
 		const embed = interaction.message.embeds[0];
 		embed.setFooter({ text: ' ' });
 
-		if (interaction.user.bot || (lottery.ffa === 'off' && !eligibleRole)) {
+		const ffa = lottery.ffa.toString();
+		console.log({ ffa });
+		if (interaction.user.bot || (ffa == '\x00' && !eligibleRole)) {
 			embed.description = 'You are not eligible to participate in this lottery yet.';
 			await interaction.update({ embeds:[embed], components: [], ephemeral: true });
 			return;
@@ -279,6 +282,7 @@ async function enterLottery(interaction) {
 				// Accept Entry and Insert to Database
 				insertLotteryEntry(lotteryId, discordId, newFee);
 				updateLotteryEntries(lotteryId);
+				updateMilesBurned(lotteryId, newFee);
 				await completeBet(interaction);
 			});
 		});

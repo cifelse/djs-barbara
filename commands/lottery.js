@@ -29,7 +29,7 @@ module.exports = {
 			.setRequired(false))
 		.addStringOption(option => option.setName('free-for-all')
 			.setDescription('Include everyone in the lottery')
-			.addChoices([['on', 'on'], ['off', 'off']])
+			.addChoices([['on', '1'], ['off', '0']])
 			.setRequired(false))
 		.addChannelOption(option => option.setName('channel')
 			.setDescription('Enter the channel where you want to start the lottery.')
@@ -53,7 +53,7 @@ module.exports = {
 			if (!duration) duration = '24h';
 			if (!price) price = 50;
 			if (!max_tickets) max_tickets = 1;
-			if (!ffa) ffa = 'off';
+			if (!ffa) ffa = 0;
 			if (!channelId) channelId = concorde.channels.lottery;
 			else channelId = channelId.id;
 

@@ -1,7 +1,7 @@
 const mysql = require('mysql');
 
 // CREATING A LOTTERY AND SAVING IT TO DATABASE
-function saveLottery(details) {
+function saveLottery(details, callback) {
 	const connection = mysql.createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
@@ -12,12 +12,13 @@ function saveLottery(details) {
     connection.connect(err => {
         if (err) throw err;
     
-        const sql = `INSERT INTO lotteries (lottery_id, title, num_winners, num_entries, price, max_tickets, miles_burned, start_date, end_date, ffa, channel_id) VALUES ('${details.lottery_id}', '${details.title}', '${details.num_winners}', '${details.num_entries}', '${details.price}', '${details.max_tickets}', '0', '${details.start_date}', '${details.end_date}', '${details.ffa}', '${details.channel_id}')`;
+        const sql = `INSERT INTO lotteries (lottery_id, title, num_winners, num_entries, price, max_tickets, miles_burned, start_date, end_date, ffa, channel_id) VALUES ('${details.lottery_id}', '${details.title}', ${details.num_winners}, ${details.num_entries}, ${details.price}, ${details.max_tickets}, 0, '${details.start_date}', '${details.end_date}', ${details.ffa}, '${details.channel_id}')`;
 		
         connection.query(sql, (err) => {
 			if (err) throw err;
 			console.log('Barbara: I\'ve created a new lottery!');
 			connection.end();
+			callback();
         });
     });
 }
@@ -28,6 +29,7 @@ function getLotteries(callback) {
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
         database: 'customer_253110_giveaways',
+		timezone: 'Z',
     });
 
     con.connect(err => {
@@ -275,6 +277,27 @@ function getStrictMode(lotteryId, callback) {
     });
 }
 
+function updateMilesBurned(lotteryId, miles) {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `UPDATE lotteries SET miles_burned = miles_burned + ${miles} WHERE lottery_id = '${lotteryId}';`;
+		
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			console.log(`Barbara: Added ${miles} to miles burned in lottery table!`);
+			connection.end();
+        });
+    });
+}
+
 module.exports = {
 	saveLottery,
     getLotteries,
@@ -287,4 +310,5 @@ module.exports = {
     removeMiles,
     getDataForBet,
     getStrictMode,
+	updateMilesBurned,
 }
