@@ -200,7 +200,7 @@ module.exports.editEmbed = {
 			{ name: '_ _\nPrice of a Single Ticket', value: `For this lottery, a single ticket costs **${lotteryDetails.price} MILES.**`, inline: false },
 		);
 
-		if (lotteryDetails.strict_mode === 'off') lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
+		if (lotteryDetails.ffa === 'on') lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
 		else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
 		
 		return lotteryEmbed;
