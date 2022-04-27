@@ -67,15 +67,20 @@ module.exports = {
 			}
 			modifiedTitle = modifiedTitle.toUpperCase();
 
-			const end_date = new Date(Date.now() + ms(duration));
+			let start_date = new Date(Date.now());
+			let end_date = new Date(Date.now() + ms(duration));
+			start_date = convertDateToTimestamp(start_date);
+			end_date = convertDateToTimestamp(end_date);
+
 			// Gather all Giveaway Details
 			const details = { 
 				title : modifiedTitle, 
 				num_winners: winnerCount, 
 				duration,
 				multiplier,
+				start_date,
 				end_date,
-				ffa, 
+				ffa,
 				channel_id: channelId,
 			};
 

@@ -19,7 +19,6 @@ async function startGiveaway(interaction, details, client) {
 	const message = await channel.send({ embeds: [embed], components: [row], fetchReply: true });
 
 	details.giveaway_id = message.id;
-	details.start_date = new Date().toString();
 	details.num_entries = 0;
 	
 	saveGiveaway(details);
@@ -40,16 +39,17 @@ async function startGiveaway(interaction, details, client) {
 
 async function scheduleGiveaway(client, details) {
 	for (let i = 0; i < details.length; i++) {
+		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
+
 		const currentDate = new Date().getTime();
-		const endDate = Date.parse(details[i].end_date);
+		const endDate = Date.parse(end_date);
 
 		if (endDate < currentDate) continue;
-		const { title, num_winners, end_date, channel_id, giveaway_id } = details[i];
 		
-		console.log('\nBarbara: Alert! I\'m Scheduling a Giveaway for', end_date);
+		console.log('\nBarbara: Alert! I\'m Scheduling a Giveaway for', title);
 		
-		const channel = client.channels.cache.get(channel_id);
 		let message;
+		const channel = client.channels.fetch(channel_id);
 		if (channel) message = await channel.messages.fetch(giveaway_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
@@ -71,7 +71,8 @@ async function scheduleGiveaway(client, details) {
 		});
 		watchEntries.start();
 	
-		scheduleJob(end_date, async () => {
+		const scheduledEndDate = convertTimestampToDate(end_date);
+		scheduleJob(scheduledEndDate, async () => {
 			watchEntries.stop();
 			getParticipants(giveaway_id, async users => {
 				const winners = determineWinners(users, num_winners);

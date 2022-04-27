@@ -144,27 +144,6 @@ function getGiveaways(callback) {
     });
 }
 
-function checkOngoing() {
-    const con = mysql.createConnection({
-        host: 'eu02-sql.pebblehost.com',
-        user: 'customer_253110_giveaways',
-        password: 'LwtF8qJ6lEiEC3H!@KFm',
-        database: 'customer_253110_giveaways',
-    });
-
-    con.connect(err => {
-        if (err) throw err;
-        
-        const sql = 'SELECT * FROM giveaways WHERE ongoing = 1';
-
-        con.query(sql, (err, res) => {
-            if (err) throw err;
-            con.end();
-            console.log(res);
-        });
-    });
-}
-
 function getEntries(giveawayId, callback) {
     const con = mysql.createConnection({
         host: 'eu02-sql.pebblehost.com',
@@ -193,6 +172,5 @@ module.exports = {
     getParticipants,
     checkDuplicateParticipant, 
     getGiveaways, 
-    checkOngoing,
     getEntries,
 };
