@@ -167,7 +167,7 @@ module.exports.editEmbed = {
 		);
 
 		if (ffa == 1) giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
-		else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
+		else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 10)`);
 
 		if (multiplier == 1) giveawayEmbed.addField('_ _\nMultipliers', `<@&${concorde.roles.multiplier.jetsetters}> + 4\n<@&${concorde.roles.multiplier.businessClass}> + 3\n<@&${concorde.roles.multiplier.premiumEcon}> + 2`);
 		
@@ -209,7 +209,7 @@ module.exports.editEmbed = {
 		);
 
 		if (ffa == 1) lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
-		else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 5)`);
+		else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 10)`);
 		
 		return lotteryEmbed;
 	},
