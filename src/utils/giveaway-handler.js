@@ -211,6 +211,7 @@ async function addEntries(interaction, roles) {
 	if (roles.get(concorde.roles.frequentFlyer)) multiplier = 1;
 	
 	for (let i = 0; i < multiplier; i++) {
+		console.log('inserting');
 		insertParticipant(participant);
 	}
 	

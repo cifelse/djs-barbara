@@ -156,7 +156,7 @@ client.on('modalSubmit', async (modal) => {
 
 				// Reschedule Bidding if duration is less than or equal 10 minutes
 				if (minutes <= 10) {
-					let newEndDate = new Date(endDate + ms('10s'));
+					let newEndDate = new Date(endDate + ms('10m'));
 					auction.endDate = newEndDate;
 					auction.reschedule(newEndDate);
 					

@@ -21,7 +21,7 @@ module.exports = {
 		.setRequired(false))
 		.addChannelOption(option => option.setName('channel')
 			.setDescription('Enter the channel where you want to start the giveaway.')
-			.addChannelType(ChannelType.GuildText)
+			.addChannelTypes(ChannelType.GuildText)
 			.setRequired(false)),
 	async execute(interaction, client) {
 		// Role Checker

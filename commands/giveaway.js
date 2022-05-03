@@ -21,15 +21,15 @@ module.exports = {
 			.setRequired(false))
 		.addStringOption(option => option.setName('multiplier')
 			.setDescription('Set multiplier to on or off')
-			.addChoices([['on', '1'], ['off', '0']])
+			.addChoices({ name: 'on', value: '1' }, { name: 'off', value: '0'})
 			.setRequired(false))
 		.addStringOption(option => option.setName('free-for-all')
 			.setDescription('Include everyone in the giveaway')
-			.addChoices([['on', '1'], ['off', '0']])
+			.addChoices({ name: 'on', value: '1' }, { name: 'off', value: '0'})
 			.setRequired(false))
 		.addChannelOption(option => option.setName('channel')
 			.setDescription('Enter the channel where you want to start the giveaway.')
-			.addChannelType(ChannelType.GuildText)
+			.addChannelTypes(ChannelType.GuildText)
 			.setRequired(false)),
 	async execute(interaction, client) {
 		// Check Role
