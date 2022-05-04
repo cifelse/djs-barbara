@@ -1,22 +1,31 @@
 // Get requirements for bot to work
-const fs = require('fs');
-const { Client, Collection, Intents, MessageActionRow } = require('discord.js');
-const { token } = require('./config.json');
-const handleError = require('./src/utils/error-handling');
-const { presentQueue } = require('./src/queue-system');
-const { enterGiveaway, scheduleGiveaway, reroll } = require('./src/utils/giveaway-handler');
-const { getGiveaways } = require('./src/database/giveaway-db');
-const { CronJob } = require('cron');
-const ids = require('./src/utils/ids.json');
-const ms = require('ms');
-const discordModals = require('discord-modals');
-const { submitBid, scheduleAuction } = require('./src/utils/auction-handler');
-const { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } = require('./src/database/auction-db');
-const { enterLottery, scheduleLottery, confirmBet } = require('./src/utils/lottery-handler');
-const { getLotteries } = require('./src/database/lottery-db');
+import { Client, Collection, Intents, MessageActionRow } from 'discord.js';
+import 'dotenv/config';
+// Utilities
+import { readdirSync } from 'fs';
+import { CronJob } from 'cron';
+import { on } from 'process';
+import { concorde } from './src/utils/ids.json';
+import ms from 'ms';
+import { presentQueue } from './src/queue-system.js';
+// Giveaway
+import { enterGiveaway, scheduleGiveaway, reroll } from './src/handlers/giveaway-handler.js';
+import { getGiveaways } from './src/database/giveaway-db.js';
+// Auction
+import { scheduleAuction } from './src/handlers/auction-handler';
+import { checkMiles, updateBid, getAuctions, updateEndTime, addToBidHistory } from './src/database/auction-db.js';
+// Lottery
+import { enterLottery, scheduleLottery, confirmBet } from './src/handlers/lottery-handler.js';
+import { getLotteries } from './src/database/lottery-db.js';
+// Handlers
+import { convertDateToTimestamp } from './src/utils/date-handler.js';
+import handleError from './src/handlers/error-handler.js';
+
+import discordModals from 'discord-modals';
 const { Modal, TextInputComponent, showModal } = discordModals;
-const process = require('process');
-const { convertDateToTimestamp } = require('./src/utils/date-handler');
+
+import { keys } from './src/utils/keys.js';
+// const { concorde } = keys;
 
 // Create client instance
 const client = new Client({ intents: [
@@ -30,7 +39,7 @@ discordModals(client);
 client.commands = new Collection();
 client.auctionSchedules = [];
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = readdirSync('./src/commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
 	// Get file
@@ -231,16 +240,16 @@ async function forceEnd(channelId, messageId) {
 
 // Schedule Message
 const gm = new CronJob('0 0 11/22 * * *', () => {
-	const gmChannel = client.guilds.cache.get(ids.concorde.guildID).channels.cache.get('909300632207364146');
+	const gmChannel = client.guilds.cache.get(concorde.guildID).channels.cache.get('909300632207364146');
 	if (!gmChannel) return;
 	gmChannel.send('GM GN, Why don\'t you all hang with me at the <#929794847198564354>?');
 });
 
 const disableRerolls = new CronJob('0 */30 * * * *', async () => {
 	// Get guild and channel
-	const guild = client.guilds.cache.get(ids.concorde.guildID);
+	const guild = client.guilds.cache.get(concorde.guildID);
 	if (!guild) return;
-	const giveawayLogs = guild.channels.cache.get(ids.concorde.channels.serverLogs);
+	const giveawayLogs = guild.channels.cache.get(concorde.channels.serverLogs);
 	if (!giveawayLogs) return;
 	// Check Messages for Reroll Buttons
 	const fetchedMessages = await giveawayLogs.messages.fetch({ limit: 100 });
@@ -272,8 +281,8 @@ client.on('shardError', error => {
 	console.error('Barbara encountered a websocket connection error:', error);
 });
 
-process.on('unhandledRejection', error => {
+on('unhandledRejection', error => {
 	console.error('Barbara encountered an unhandled promise rejection:', error);
 });
 
-client.login(token);
+client.login(process.env.SWITCH_TOKEN);
