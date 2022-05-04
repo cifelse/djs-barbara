@@ -1,6 +1,6 @@
 const { getVoiceConnection, AudioPlayerStatus } = require('@discordjs/voice');
 const { MessageEmbed } = require('discord.js');
-const { editEmbed } = require('./embeds');
+const { editEmbed } = require('./embeds/embeds');
 
 module.exports = {
 	playMessage: async (interaction, song) => {

@@ -1,8 +1,8 @@
 const { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } = require('@discordjs/voice');
 const play = require('play-dl');
 const { getQueue } = require('./queue-system');
-const { playMessage } = require('./utils/play-message');
-const handleError = require('./utils/error-handling');
+const { playMessage } = require('../play-message');
+const handleError = require('../error-handling');
 
 module.exports.playMusic = async (interaction) => {
 	// Refresh token if expired

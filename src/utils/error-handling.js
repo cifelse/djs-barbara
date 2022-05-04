@@ -1,5 +1,5 @@
 const { MessageEmbed } = require('discord.js');
-const { editEmbed } = require('./embeds');
+const { editEmbed } = require('./embeds/embeds');
 
 function handleError(error) {
 	console.error(error);
