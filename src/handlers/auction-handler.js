@@ -1,8 +1,8 @@
-const { MessageButton, MessageActionRow } = require('discord.js');
-const { saveAuction, getAuction, getAuctions } = require('../database/auction-db');
-const { editEmbed } = require('./embeds');
-const { hangar, concorde } = require('./ids.json');
-const { scheduleJob } = require('node-schedule');
+import { MessageButton, MessageActionRow } from 'discord.js';
+import { saveAuction, getAuction, getAuctions } from '../database/auction-db.js';
+import { editEmbed } from '../utils/embeds/embeds.js';
+import { scheduleJob } from 'node-schedule';
+import { keys } from '../utils/keys.js';
 
 async function startAuction(interaction, details, client) {
 	const embed = editEmbed.auctionEmbed(details);
@@ -34,7 +34,7 @@ async function startAuction(interaction, details, client) {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.auctionLogs);
+	const logsChannel = interaction.guild.channels.cache.get(keys.concorde.channels.auction);
 	await logsChannel.send({ embeds: [embed] });
 }
 
@@ -81,7 +81,7 @@ async function scheduleAuction(client, details) {
 	}
 }
 
-module.exports = {
+export default {
 	startAuction,
 	scheduleAuction,
 };

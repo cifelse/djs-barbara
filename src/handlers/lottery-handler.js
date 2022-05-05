@@ -1,11 +1,11 @@
-const { MessageButton, MessageActionRow, MessageEmbed } = require('discord.js');
-const { editEmbed } = require('./embeds');
-const { hangar, concorde } = require('./ids.json');
-const { scheduleJob } = require('node-schedule');
-const { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } = require('../database/lottery-db');
-const { CronJob } = require('cron');
-const ids = require('./ids.json');
-const { convertTimestampToDate } = require('./date-handler');
+import { MessageButton, MessageActionRow, MessageEmbed } from 'discord.js';
+import { editEmbed } from './embeds';
+import { hangar, concorde } from './ids.json';
+import { scheduleJob } from 'node-schedule';
+import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } from '../database/lottery-db';
+import { CronJob } from 'cron';
+import { concorde as _concorde } from './ids.json';
+import { convertTimestampToDate } from './date-handler';
 
 async function startLottery(interaction, details, client) {
 	const embed = editEmbed.lotteryEmbed(interaction, details);
@@ -147,7 +147,7 @@ async function scheduleLottery(client, details) {
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
 							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
-							{ name: '_ _\nReroll Reminder', value: `Only the <@&${ids.concorde.roles.headPilot}> and the <@&${ids.concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
+							{ name: '_ _\nReroll Reminder', value: `Only the <@&${_concorde.roles.headPilot}> and the <@&${_concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
 						]);
 						
 						if (winners.length === 0) {
@@ -345,7 +345,7 @@ async function rerollLottery(interaction) {
 	}
 }
 
-module.exports = {
+export default {
 	startLottery,
 	scheduleLottery,
 	enterLottery,

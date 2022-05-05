@@ -12,4 +12,4 @@ function convertTimestampToDate(timestamp) {
 	return new Date(Date.UTC(newDateArray[0], newDateArray[1]-1, newDateArray[2], newDateArray[3], newDateArray[4], newDateArray[5]));
 }
 
-module.exports = { convertDateToTimestamp, convertTimestampToDate };
+export default { convertDateToTimestamp, convertTimestampToDate };

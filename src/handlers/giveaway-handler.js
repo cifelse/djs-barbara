@@ -1,10 +1,10 @@
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
-const { scheduleJob } = require('node-schedule');
-const { concorde, hangar } = require('./ids.json');
-const { editEmbed } = require('./embeds');
-const { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways } = require('../database/giveaway-db');
-const { CronJob } = require('cron');
-const ids = require('./ids.json');
+import { MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
+import { scheduleJob } from 'node-schedule';
+import { concorde, hangar } from './ids.json';
+import { editEmbed } from './embeds';
+import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways } from '../database/giveaway-db';
+import { CronJob } from 'cron';
+import { concorde as _concorde } from './ids.json';
 
 async function startGiveaway(interaction, details, client) {
 	const embed = editEmbed.giveawayEmbed(interaction, details);
@@ -147,7 +147,7 @@ async function scheduleGiveaway(client, details) {
 							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 							{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
 							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
-							{ name: '_ _\nReroll Reminder', value: `Only the <@&${ids.concorde.roles.headPilot}> and the <@&${ids.concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
+							{ name: '_ _\nReroll Reminder', value: `Only the <@&${_concorde.roles.headPilot}> and the <@&${_concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
 						]);
 						
 						if (winners.length === 0) {
@@ -309,4 +309,4 @@ async function reroll(interaction) {
 	}
 }
 
-module.exports = { saveGiveaway, startGiveaway, enterGiveaway, scheduleGiveaway, reroll };
+export default { saveGiveaway, startGiveaway, enterGiveaway, scheduleGiveaway, reroll };
