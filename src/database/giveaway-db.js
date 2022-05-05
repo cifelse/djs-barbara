@@ -1,8 +1,8 @@
-const mysql = require('mysql');
+import { createConnection } from 'mysql';
 
 // CREATING A GIVEAWAY AND SAVING IT TO DATABASE
-function saveGiveaway(details, callback) {
-	const connection = mysql.createConnection({
+export const saveGiveaway = (details, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -24,10 +24,10 @@ function saveGiveaway(details, callback) {
 }
 
 // ENTERING A PARTICIPANT
-function insertParticipant(participant) {
+export const insertParticipant = (participant) => {
     const { giveawayId, discordId } = participant;
 
-    const con = mysql.createConnection({
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -60,8 +60,8 @@ function insertParticipant(participant) {
     });
 }
 
-function updateEntries(giveawayId) {
-    const con = mysql.createConnection({
+export const updateEntries = (giveawayId) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -81,8 +81,8 @@ function updateEntries(giveawayId) {
     });
 }
 
-function getParticipants(giveawayId, callback) {
-	const connection = mysql.createConnection({
+export const getParticipants = (giveawayId, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -103,8 +103,8 @@ function getParticipants(giveawayId, callback) {
     });
 }
 
-function checkDuplicateParticipant(giveawayId, participantId, callback) {
-    const con = mysql.createConnection({
+export const checkDuplicateParticipant = (giveawayId, participantId, callback) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -124,8 +124,8 @@ function checkDuplicateParticipant(giveawayId, participantId, callback) {
     });
 }
 
-function getGiveaways(callback) {
-	const con = mysql.createConnection({
+export const getGiveaways = (callback) => {
+	const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -146,8 +146,8 @@ function getGiveaways(callback) {
     });
 }
 
-function getEntries(giveawayId, callback) {
-    const con = mysql.createConnection({
+export const getEntries = (giveawayId, callback) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -167,12 +167,22 @@ function getEntries(giveawayId, callback) {
     });
 }
 
-module.exports = { 
-    saveGiveaway, 
-    insertParticipant, 
-    updateEntries,
-    getParticipants,
-    checkDuplicateParticipant, 
-    getGiveaways, 
-    getEntries,
-};
+export const addOneGiveawayCreated = () => {
+	const connection = createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `UPDATE daily_logs SET giveaways_created = giveaways_created + 1 WHERE id = (SELECT MAX(id) FROM daily_logs)`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.end();
+        });
+    });
+}

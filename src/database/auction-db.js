@@ -1,8 +1,8 @@
-const mysql = require('mysql');
+import { createConnection } from 'mysql';
 
 // CREATING AN AUCTION AND SAVING IT TO DATABASE
-function saveAuction(details, callback) {
-	const connection = mysql.createConnection({
+export const saveAuction = (details, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -23,8 +23,8 @@ function saveAuction(details, callback) {
     });
 }
 
-function checkExisting(discordId, callback) {
-	const connection = mysql.createConnection({
+export const checkExisting = (discordId, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -49,8 +49,8 @@ function checkExisting(discordId, callback) {
 	});
 }
 
-function checkMiles(discordId, callback) {
-	const connection = mysql.createConnection({
+export const checkMiles = (discordId, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -75,8 +75,8 @@ function checkMiles(discordId, callback) {
     });
 }
 
-function updateBid(auctionId, user, bid) {
-	const connection = mysql.createConnection({
+export const updateBid = (auctionId, user, bid) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -95,8 +95,8 @@ function updateBid(auctionId, user, bid) {
     });
 }
 
-function getAuctions(callback) {
-	const con = mysql.createConnection({
+export const getAuctions = (callback) => {
+	const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -117,8 +117,8 @@ function getAuctions(callback) {
     });
 }
 
-function getAuction(auction_id, callback) {
-	const connection = mysql.createConnection({
+export const getAuction = (auction_id, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -143,8 +143,8 @@ function getAuction(auction_id, callback) {
 	});
 }
 
-function updateEndTime(auctionId, endDate) {
-	const connection = mysql.createConnection({
+export const updateEndTime = (auctionId, endDate) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -163,8 +163,8 @@ function updateEndTime(auctionId, endDate) {
     });
 }
 
-function addToBidHistory(auctionId, bidderId, bid) {
-	const connection = mysql.createConnection({
+export const addToBidHistory = (auctionId, bidderId, bid) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -183,12 +183,22 @@ function addToBidHistory(auctionId, bidderId, bid) {
     });
 }
 
-module.exports = {
-	saveAuction,
-	checkMiles,
-	updateBid,
-	getAuctions,
-	getAuction,
-	updateEndTime,
-	addToBidHistory,
-};
+export const addOneAuctionCreated = () => {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `UPDATE daily_logs SET auctions_created = auctions_created + 1 WHERE id = (SELECT MAX(id) FROM daily_logs)`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.end();
+        });
+    });
+}

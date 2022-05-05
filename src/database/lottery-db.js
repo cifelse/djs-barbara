@@ -1,8 +1,8 @@
-const mysql = require('mysql');
+import { createConnection } from 'mysql';
 
 // CREATING A LOTTERY AND SAVING IT TO DATABASE
-function saveLottery(details, callback) {
-	const connection = mysql.createConnection({
+export const saveLottery = (details, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -23,8 +23,8 @@ function saveLottery(details, callback) {
     });
 }
 
-function getLotteries(callback) {
-	const con = mysql.createConnection({
+export const getLotteries = (callback) => {
+	const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -45,8 +45,8 @@ function getLotteries(callback) {
     });
 }
 
-function updateLotteryEntries(lotteryId) {
-    const con = mysql.createConnection({
+export const updateLotteryEntries = (lotteryId) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -66,8 +66,8 @@ function updateLotteryEntries(lotteryId) {
     });
 }
 
-function insertLotteryEntry(lotteryId, discordId, price) {
-    const con = mysql.createConnection({
+export const insertLotteryEntry = (lotteryId, discordId, price) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -89,8 +89,8 @@ function insertLotteryEntry(lotteryId, discordId, price) {
         });
 }
 
-function getLotteryEntries(lotteryId, callback) {
-    const con = mysql.createConnection({
+export const getLotteryEntries = (lotteryId, callback) => {
+    const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
         user: 'customer_253110_giveaways',
         password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -110,8 +110,8 @@ function getLotteryEntries(lotteryId, callback) {
     });
 }
 
-function getGamblers(lotteryId, callback) {
-	const connection = mysql.createConnection({
+export const getGamblers = (lotteryId, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -131,8 +131,8 @@ function getGamblers(lotteryId, callback) {
     });
 }
 
-function checkMaxTicketsAndEntries(lotteryId, discordId, callback) {
-    const connection = mysql.createConnection({
+export const checkMaxTicketsAndEntries = (lotteryId, discordId, callback) => {
+    const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -151,8 +151,8 @@ function checkMaxTicketsAndEntries(lotteryId, discordId, callback) {
     });
 }
 
-function checkExisting(discordId, callback) {
-	const connection = mysql.createConnection({
+export const checkExisting = (discordId, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -177,8 +177,8 @@ function checkExisting(discordId, callback) {
 	});
 }
 
-function checkExceedingQuantity(discordId, quantity, callback) {
-	const connection = mysql.createConnection({
+export const checkExceedingQuantity = (discordId, quantity, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -202,8 +202,8 @@ function checkExceedingQuantity(discordId, quantity, callback) {
 	});
 }
 
-function removeMiles(discordId, quantity, callback) {
-	const connection = mysql.createConnection({
+export const removeMiles = (discordId, quantity, callback) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -237,8 +237,8 @@ function removeMiles(discordId, quantity, callback) {
     });
 }
 
-function getDataForBet(lotteryId, discordId, callback) {
-    const connection = mysql.createConnection({
+export const getDataForBet = (lotteryId, discordId, callback) => {
+    const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -257,8 +257,8 @@ function getDataForBet(lotteryId, discordId, callback) {
     });
 }
 
-function getStrictMode(lotteryId, callback) {
-    const connection = mysql.createConnection({
+export const getStrictMode = (lotteryId, callback) => {
+    const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -277,8 +277,8 @@ function getStrictMode(lotteryId, callback) {
     });
 }
 
-function updateMilesBurned(lotteryId, miles) {
-	const connection = mysql.createConnection({
+export const updateMilesBurned = (lotteryId, miles) => {
+	const connection = createConnection({
 		host: 'eu02-sql.pebblehost.com',
 		user: 'customer_253110_giveaways',
 		password: 'LwtF8qJ6lEiEC3H!@KFm',
@@ -298,17 +298,22 @@ function updateMilesBurned(lotteryId, miles) {
     });
 }
 
-module.exports = {
-	saveLottery,
-    getLotteries,
-	updateLotteryEntries,
-	insertLotteryEntry,
-	getLotteryEntries,
-	getGamblers,
-    checkMaxTicketsAndEntries,
-    checkExisting,
-    removeMiles,
-    getDataForBet,
-    getStrictMode,
-	updateMilesBurned,
+export const addOneLotteryCreated = () => {
+	const connection = mysql.createConnection({
+		host: 'eu02-sql.pebblehost.com',
+		user: 'customer_253110_giveaways',
+		password: 'LwtF8qJ6lEiEC3H!@KFm',
+		database: 'customer_253110_giveaways',
+	});
+
+    connection.connect(err => {
+        if (err) throw err;
+    
+        const sql = `UPDATE daily_logs SET lotteries_created = lotteries_created + 1 WHERE id = (SELECT MAX(id) FROM daily_logs)`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.end();
+        });
+    });
 }
