@@ -1,10 +1,10 @@
-const { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } = require('@discordjs/voice');
-const play = require('play-dl');
-const { getQueue } = require('./queue-system');
-const { playMessage } = require('../play-message');
-const handleError = require('../error-handling');
+import { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } from '@discordjs/voice';
+import play from 'play-dl';
+import { getQueue } from './queue-system';
+import { playMessage } from '../play-message';
+import handleError from '../../handlers/error-handler';
 
-module.exports.playMusic = async (interaction) => {
+export async function playMusic(interaction) {
 	// Refresh token if expired
 	if (play.is_expired()) await play.refreshToken();
 
@@ -70,4 +70,4 @@ module.exports.playMusic = async (interaction) => {
 		interaction.channel.send({ embeds:[handledError] });
 		this.playMusic(interaction);
 	});
-};
+}
