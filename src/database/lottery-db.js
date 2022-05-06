@@ -77,7 +77,7 @@ export const insertLotteryEntry = (lotteryId, discordId, price) => {
     con.connect(err => {
         if (err) throw err;
             // Insert a Record to the Table
-            sql = `INSERT INTO lottery_entries (lottery_id, discord_id, price) VALUES ('${lotteryId}', '${discordId}', '${price}')`;
+            const sql = `INSERT INTO lottery_entries (lottery_id, discord_id, price) VALUES ('${lotteryId}', '${discordId}', '${price}')`;
 			
             con.query(sql, err => {
                 if (err) throw err;
@@ -162,7 +162,7 @@ export const checkExisting = (discordId, callback) => {
 	connection.connect(err => {
         if (err) throw err;
     
-		let sql = `SELECT * FROM miles WHERE discord_id = "${discordId}"`
+		const sql = `SELECT * FROM miles WHERE discord_id = "${discordId}"`
         
 		connection.query(sql, (err, res) => {
 			if (err) throw err;
@@ -187,7 +187,7 @@ export const checkExceedingQuantity = (discordId, quantity, callback) => {
 
 	connection.connect(err => {
         if (err) throw err;
-		sql = `SELECT miles FROM miles WHERE miles < ${quantity} AND discord_id = ${discordId}`;
+		const sql = `SELECT miles FROM miles WHERE miles < ${quantity} AND discord_id = ${discordId}`;
 		connection.query(sql, (err, res) => {
 			if (err) throw err;
 			if (!res[0]) {
@@ -224,7 +224,7 @@ export const removeMiles = (discordId, quantity, callback) => {
 					connection.end();
 					return;
 				}
-				sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
+				const sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
 				connection.query(sql, (err) => {
 				if (err) throw err;
 				console.log(`Blake: Deducted ${quantity} miles to user: ${discordId}`);

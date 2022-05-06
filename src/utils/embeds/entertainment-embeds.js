@@ -154,7 +154,7 @@ export const editLotteryLog = async (client, lottery, message, winners) => {
 	const { title, channel_id, lottery_id } = lottery;
 	
 	// Edit Lottery logs message
-	const logsChannel = client.channels.cache.get('939049510288650321');
+	const logsChannel = client.channels.cache.get(lotteryLogs);
 	let logMessage;
 	if (logsChannel) {
 		const logMessages = await logsChannel.messages.fetch({ limit: 20 });

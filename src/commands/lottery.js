@@ -3,6 +3,7 @@ import { ChannelType } from 'discord-api-types/v9';
 import { convertDateToTimestamp } from '../handlers/date-handler.js';
 import ms from 'ms';
 import { keys } from '../utils/keys.js';
+import { startLottery } from '../handlers/lottery-handler.js';
 
 const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
 

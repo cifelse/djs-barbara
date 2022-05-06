@@ -74,7 +74,8 @@ export const scheduleLottery = async (client, details) => {
 				await message.edit({ components: [row] });
 
 			});
-		}).start();
+		});
+		watchEntries.start();
 		
 		scheduleJob(end_date, async () => {
 			watchEntries.stop();
@@ -94,7 +95,7 @@ export const scheduleLottery = async (client, details) => {
 				}
 				
 				if (channel && message) {
-					await announceLotteryWinners(message, winnerString, title);
+					await announceLotteryWinners(channel, message, winnerString, title);
 					await editLotteryLog(client, details[i], message, winnerString);						
 				}
 			});
