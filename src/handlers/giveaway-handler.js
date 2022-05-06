@@ -1,10 +1,9 @@
-import { MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
+import { MessageActionRow, MessageButton } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { concorde, hangar } from './ids.json';
 import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways } from '../database/giveaway-db.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
-import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed } from '../utils/embeds/entertainment-embeds';
+import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed } from '../utils/embeds/entertainment-embeds.js';
 
 // Get Necessary Keys
 const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { giveaway, logs: { giveawayLogs } } } = keys.concorde;
@@ -69,7 +68,7 @@ export const scheduleGiveaway = async (client, details) => {
 				// Check for number of entries
 				if (entries == newButton.label.replace(/[^\d]+/gi, '')) return;
 
-				console.log(`Barbara: There are a total of ${entries} participants now!`);
+				console.log(`Barbara: There are a total of ${entries} giveaway participants now!`);
 
 				newButton.setLabel(`🍷 ${entries}`);
 				const row = new MessageActionRow();
@@ -194,11 +193,11 @@ export const determineWinners = (users, winnerCount) => {
         users.splice(random, 1);
     }
 
-	console.log('Barbara: I\'ve successfully chosen the winners!');
+	console.log('Barbara: I\'ve successfully chosen the Giveaway winners!');
     return winners;
 }
 
-export const rerollGiveaway = (interaction) => {
+export const rerollGiveaway = async (interaction) => {
 	// Check Role
 	const eligible = interaction.member.roles.cache.hasAny(admin.captain, admin.crew, ram.engineers, keys.hangar.roles.engineers);
 	if (!eligible) {

@@ -1,7 +1,7 @@
-import { MessageButton, MessageActionRow, MessageEmbed } from 'discord.js';
+import { MessageButton, MessageActionRow } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
 import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } from '../database/lottery-db.js';
-import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds';
+import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
 
@@ -133,7 +133,7 @@ export const determineWinners = (users, winnerCount) => {
     return winners;
 }
 
-export const confirmBet = (interaction) => {
+export const confirmBet = async (interaction) => {
 	const lotteryId = interaction.message.id;
 	const discordId = interaction.user.id;
 
@@ -168,7 +168,7 @@ export const confirmBet = (interaction) => {
 	});
 }
 
-export const enterLottery = (interaction) => {
+export const enterLottery = async (interaction) => {
 	const lotteryId = interaction.message.embeds[0].footer.text.replace(/[^\d]+/gi, '');
 	const discordId = interaction.user.id;
 

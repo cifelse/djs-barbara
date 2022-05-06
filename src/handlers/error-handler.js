@@ -1,20 +1,19 @@
 import { MessageEmbed } from 'discord.js';
-import { editEmbed } from '../utils/embeds/embeds.js';
+import { timeout, error as _error } from '../utils/embeds/general-embeds.js';
+import { unviewable } from '../utils/embeds/player-embeds.js';
 
-function handleError(error) {
+export const handleError = (error) => {
 	console.error(error);
 	const embed = new MessageEmbed();
 
 	if (error.message.includes('unviewable')) {
-		editEmbed.unviewable(embed);
+		unviewable(embed);
 	}
 	else if (error.code === 'ETIMEDOUT') {
-		editEmbed.timeout(embed);
+		timeout(embed);
 	}
 	else {
-		editEmbed.error(embed);
+		_error(embed);
 	}
 	return embed;
 }
-
-export default handleError;
