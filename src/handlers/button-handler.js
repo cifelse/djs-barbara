@@ -1,15 +1,25 @@
+import { presentQueue } from '../utils/player/queue-system.js';
+import { enterGiveaway, rerollGiveaway } from './giveaway-handler.js';
+import { confirmBet, enterLottery } from './lottery-handler.js';
+import discordModals from 'discord-modals';
+
+const { Modal, TextInputComponent, showModal } = discordModals;
+
 export const buttonHandler = async (interaction, client) => {
 	if (interaction.customId === 'first' || interaction.customId === 'back' || interaction.customId === 'next' || interaction.customId === 'last') {
 		const editedQueue = presentQueue(interaction.guildId, interaction.customId);
-		if (!editedQueue.title) interaction.update({ embeds:[editedQueue], components: [] });
-		else interaction.update({ embeds:[editedQueue] });
+		if (!editedQueue.title) await interaction.update({ embeds:[editedQueue], components: [] });
+		else await interaction.update({ embeds:[editedQueue] });
 	}
+
 	if (interaction.customId === 'enter') {
-		enterGiveaway(interaction);
+		await enterGiveaway(interaction);
 	}
-	if (interaction.customId === 'reroll') {
-		await reroll(interaction);
+
+	if (interaction.customId === 'reroll-giveaway') {
+		await rerollGiveaway(interaction);
 	}
+
 	if (interaction.customId === 'bid') {
 		const modal = new Modal()
 			.setCustomId('bid')
@@ -27,13 +37,12 @@ export const buttonHandler = async (interaction, client) => {
 
 		showModal(modal, { client, interaction });
 	}
+
 	if (interaction.customId === 'bet') {
-		confirmBet(interaction);
+		await confirmBet(interaction);
 	}
+
 	if (interaction.customId === 'confirmBet') {
-		enterLottery(interaction);
-	}
-	if (interaction.customId === 'force-end') {
-		console.log(interaction.message.embeds[0]);
+		await enterLottery(interaction);
 	}
 }
