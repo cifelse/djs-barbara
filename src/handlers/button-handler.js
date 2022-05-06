@@ -1,6 +1,6 @@
 import { presentQueue } from '../utils/player/queue-system.js';
 import { enterGiveaway, rerollGiveaway } from './giveaway-handler.js';
-import { confirmBet, enterLottery } from './lottery-handler.js';
+import { confirmBet, enterLottery, rerollLottery } from './lottery-handler.js';
 import discordModals from 'discord-modals';
 
 const { Modal, TextInputComponent, showModal } = discordModals;
@@ -18,6 +18,10 @@ export const buttonHandler = async (interaction, client) => {
 
 	if (interaction.customId === 'reroll-giveaway') {
 		await rerollGiveaway(interaction);
+	}
+
+	if (interaction.customId === 'reroll-lottery') {
+		await rerollLottery(interaction);
 	}
 
 	if (interaction.customId === 'bid') {

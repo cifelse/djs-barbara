@@ -1,6 +1,7 @@
+import { MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
 import { convertTimestampToDate } from "../../handlers/date-handler.js";
 import { keys } from "../keys.js";
-const { roles: { admin, ram }, channels: { giveaway, lottery, logs: { giveawayLogs, lotteryLogs } } } = keys.concorde;
+const { roles: { admin, ram, levels }, channels: { giveaway, lottery, logs: { giveawayLogs, lotteryLogs } } } = keys.concorde;
 
 // Giveaway Embeds
 export const giveawayEmbed = (interaction, giveawayDetails) => {
@@ -19,14 +20,14 @@ export const giveawayEmbed = (interaction, giveawayDetails) => {
 	);
 
 	if (ffa == 1) giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
-	else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 10)`);
+	else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${levels.frequentFlyers}> (Level 10)`);
 
-	if (multiplier == 1) giveawayEmbed.addField('_ _\nMultipliers', `<@&${concorde.roles.multiplier.jetsetters}> + 4\n<@&${concorde.roles.multiplier.businessClass}> + 3\n<@&${concorde.roles.multiplier.premiumEcon}> + 2`);
+	if (multiplier == 1) giveawayEmbed.addField('_ _\nMultipliers', `<@&${levels.jetsetters}> + 4\n<@&${levels.businessClass}> + 3\n<@&${levels.premiumEconomy}> + 2`);
 	
 	return giveawayEmbed;
 }
 
-export const announceGiveawayWinners = async (message, winners, title) => {
+export const announceGiveawayWinners = async (channel, message, winners, title) => {
 	// Edit Embed of Giveaway Message
 	const editedEmbed = message.embeds[0];
 	editedEmbed.setColor('RED');
@@ -71,7 +72,7 @@ export const editGiveawayLog = async (client, giveaway, message, winners) => {
 	// Create Reroll Button
 	const row = new MessageActionRow();
 	const rerollButton = new MessageButton()
-		.setCustomId('reroll')
+		.setCustomId('reroll-giveaway')
 		.setLabel('Reroll')
 		.setStyle('DANGER');
 	row.addComponents(rerollButton);
@@ -116,12 +117,12 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 	);
 
 	if (ffa == 1) lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
-	else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 10)`);
+	else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${levels.frequentFlyers}> (Level 10)`);
 	
 	return lotteryEmbed;
 }
 
-export const announceLotteryWinners = async (message, winners, title) => {
+export const announceLotteryWinners = async (channel, message, winners, title) => {
 	// Edit Embed of Lottery Message
 	const editedEmbed = message.embeds[0];
 	editedEmbed.setColor('RED');
@@ -153,7 +154,7 @@ export const editLotteryLog = async (client, lottery, message, winners) => {
 	const { title, channel_id, lottery_id } = lottery;
 	
 	// Edit Lottery logs message
-	const logsChannel = client.channels.cache.get(lotteryLogs);
+	const logsChannel = client.channels.cache.get('939049510288650321');
 	let logMessage;
 	if (logsChannel) {
 		const logMessages = await logsChannel.messages.fetch({ limit: 20 });
@@ -166,7 +167,7 @@ export const editLotteryLog = async (client, lottery, message, winners) => {
 	// Create Reroll Button
 	const row = new MessageActionRow();
 	const rerollButton = new MessageButton()
-		.setCustomId('reroll')
+		.setCustomId('reroll-lottery')
 		.setLabel('Reroll')
 		.setStyle('DANGER');
 	row.addComponents(rerollButton);
@@ -181,8 +182,8 @@ export const editLotteryLog = async (client, lottery, message, winners) => {
 	newEmbed.spliceFields(0, newEmbed.fields.length, [
 		{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
 		{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
-		{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
-		{ name: '_ _\nReroll Reminder', value: `Only the <@&${_concorde.roles.headPilot}> and the <@&${_concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
+		{ name: '_ _\nWinner/s', value: `${winners}`, inline: false },
+		{ name: '_ _\nReroll Reminder', value: `Only the <@&${admin.captain}> and the <@&${admin.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
 	]);
 	
 	if (winners === 'None') {

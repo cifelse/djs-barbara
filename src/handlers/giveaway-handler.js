@@ -75,7 +75,8 @@ export const scheduleGiveaway = async (client, details) => {
 				row.addComponents(newButton);
 				await message.edit({ components: [row] });
 			});
-		}).start();
+		});
+		watchEntries.start();
 	
 		scheduleJob(end_date, async () => {
 			watchEntries.stop();
@@ -95,7 +96,7 @@ export const scheduleGiveaway = async (client, details) => {
 				}
 				
 				if (channel && message) {
-					await announceGiveawayWinners(message, winnerString, title);
+					await announceGiveawayWinners(channel, message, winnerString, title);
 					await editGiveawayLog(client, details[i], message, winnerString);
 				}
 			});
