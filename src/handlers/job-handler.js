@@ -1,9 +1,9 @@
 import { CronJob } from "cron";
-import ids from '../utils/ids.json';
-import { keys } from "../utils/keys";
+import { keys } from "../utils/keys.js";
+
 const { channels } = keys.concorde;
 
-export function startJobs(guild) {
+export const startJobs = (guild) => {
 	// Schedule GM Message
 	new CronJob('0 0 11/22 * * *', () => {
 		const gmChannel = guild.channels.cache.get(channels.gm);
@@ -12,7 +12,7 @@ export function startJobs(guild) {
 	}).start();
 
 	new CronJob('0 */30 * * * *', async () => {
-		const giveawayLogs = guild.channels.cache.get(ids.concorde.channels.giveawayLogs);
+		const giveawayLogs = guild.channels.cache.get(channels.logs.giveawayLogs);
 		if (!giveawayLogs) return;
 
 		// Check Messages for Reroll Buttons
