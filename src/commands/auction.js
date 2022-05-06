@@ -1,9 +1,9 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { keys } from '../utils/keys.js';
-import { startAuction } from '../handlers/auction-handler.js';
 import { ChannelType } from 'discord-api-types/v10';
 import { convertDateToTimestamp } from '../handlers/date-handler.js';
+import { startAuction } from '../handlers/auction-handler.js';
 import ms from 'ms';
+import { keys } from '../utils/keys.js';
 
 const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
 
@@ -41,7 +41,7 @@ export const execute = async (interaction, client) => {
 	// Set Default Values
 	if (!minimum_bid) minimum_bid = 200;
 	if (!duration) duration = '24h';
-	if (!channel_id) channel_id = concorde.channels.auctions;
+	if (!channel_id) channel_id = keys.concorde.channels.auction;
 	else channel_id = channel_id.id;
 
 	// Check for valid Duration
@@ -74,6 +74,6 @@ export const execute = async (interaction, client) => {
 		end_date,
 		channel_id
 	};
-	
+
 	startAuction(interaction, details, client);
 }

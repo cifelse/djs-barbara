@@ -1,9 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChannelType } from 'discord-api-types/v9';
 import ms from 'ms';
-import { convertDateToTimestamp } from '../src/utils/date-handler';
-import { startGiveaway } from '../src/utils/giveaway-handler';
-import { concorde, hangar } from '../src/utils/ids.json';
+import { convertDateToTimestamp } from '../handlers/date-handler.js';
+import { startGiveaway } from '../handlers/giveaway-handler.js';
 import { keys } from '../utils/keys.js';
 
 const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
