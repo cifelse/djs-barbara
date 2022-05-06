@@ -2,10 +2,11 @@
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { is_expired, refreshToken, validate, search, playlist_info, spotify, soundcloud } from 'play-dl';
+import { MessageEmbed } from 'discord.js';
 
 // Own Exports
 import { userNotConnected } from '../utils/not-connected.js';
-import { invalidUrl, youtubePlaylist, spotifyPlaylist, spotifyAlbum, soundcloudPlaylist } from '../utils/embeds/player-embeds.js';
+import { invalidUrl, youtubePlaylist, spotifyPlaylist, spotifyAlbum, soundcloudPlaylist, addedToQueue } from '../utils/embeds/player-embeds.js';
 import { addSongToQueue, setQueue } from '../utils/player/queue-system.js';
 import { getSongData } from '../utils/song-data.js';
 import { playMusic } from '../utils/player/connect-play.js';
@@ -22,7 +23,7 @@ export const execute = async (interaction) => {
 	console.log(`Barbara Query: ${query}`);
 	const embed = new MessageEmbed();
 
-	if (userNotConnected(interaction)) return;
+	if (await userNotConnected(interaction)) return;
 
 	if (is_expired()) await refreshToken();
 

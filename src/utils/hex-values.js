@@ -1,0 +1,14 @@
+export const hexColor = {
+    default: "#61bd4f",
+    pause: "#ff8b3d",
+    skip: "#f3e260",
+    clear: "#000000",
+    shuffle: "dce775",
+    loop: "624aa1",
+    stopLoop: "350480",
+    youtube: "#FF0000",
+    spotify: "#1DB954",
+    soundcloud: "ff7700",
+    error: "#FF0000",
+    help: "#d1c8a4"
+}

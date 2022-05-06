@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder()
 	.setName('pause')
 	.setDescription('Pauses song from playing.');
 
-export const execute = (interaction) => {
+export const execute = async (interaction) => {
 	const connection = getVoiceConnection(interaction.guild.id);
 	
 	if (await userNotConnected(interaction)) return;

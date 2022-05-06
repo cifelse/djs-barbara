@@ -8,7 +8,7 @@ export const data = new SlashCommandBuilder()
 	.setName('resume')
 	.setDescription('Resumes the music.');
 
-export const execute = (interaction) => {
+export const execute = async (interaction) => {
 	const connection = getVoiceConnection(interaction.guild.id);
 
 	if (await userNotConnected(interaction)) return;

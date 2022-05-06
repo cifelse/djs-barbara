@@ -1,6 +1,6 @@
 import { MessageEmbed, MessageButton, MessageActionRow } from 'discord.js';
-import { stopLoop, loop, noSong, play } from '../embeds/player-embeds.js';
-import hexColor from '../hex-values.json';
+import { stopLoop as stopLoopEmbed, loop, noSong, play } from '../embeds/player-embeds.js';
+import { hexColor } from '../hex-values.js';
 
 const queue = new Map();
 let initial = 0;
@@ -37,7 +37,7 @@ export const loopQueue = async (interaction) => {
 	const embed = new MessageEmbed();
 	if (guildQueue.loop === true) {
 		guildQueue.loop = false;
-		stopLoop(embed, interaction);
+		stopLoopEmbed(embed, interaction);
 		interaction.reply({ embeds: [embed] });
 		return;
 	}

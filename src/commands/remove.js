@@ -12,7 +12,7 @@ export const data = new SlashCommandBuilder()
 		.setDescription('Input position of the song you want to remove.')
 		.setRequired(true));
 
-export const execute = (interaction) => {
+export const execute = async (interaction) => {
 	const connection = getVoiceConnection(interaction.guild.id);
 	
 	if (await userNotConnected(interaction)) return;

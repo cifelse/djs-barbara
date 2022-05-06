@@ -60,7 +60,7 @@ export const playMusic = async (interaction) => {
 
 		if (oldState.status === 'playing' && newState.status === 'idle') {
 			guildQueue.position++;
-			await this.playMusic(interaction);
+			await playMusic(interaction);
 		}
 	});
 
@@ -68,6 +68,6 @@ export const playMusic = async (interaction) => {
 	player.on('error', async error => {
 		const handledError = handleError(error);
 		await interaction.channel.send({ embeds:[handledError] });
-		await this.playMusic(interaction);
+		await playMusic(interaction);
 	});
 }

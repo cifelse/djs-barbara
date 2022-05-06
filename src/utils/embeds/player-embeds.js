@@ -1,5 +1,5 @@
 import { search } from 'play-dl';
-import hexColor from '../hex-values.json';
+import { hexColor } from '../hex-values.js';
 
 export const play = async (embed, song) => {
 	embed.setColor(hexColor.default);

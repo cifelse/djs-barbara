@@ -1,5 +1,5 @@
 import { search as _search } from 'play-dl';
-import hexColor from '../hex-values.json';
+import { hexColor } from '../hex-values.js';
 
 export const timeout = (embed) => {
 		embed.setColor(hexColor.error);
