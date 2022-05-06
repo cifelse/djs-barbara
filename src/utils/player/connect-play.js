@@ -1,10 +1,10 @@
 import { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } from '@discordjs/voice';
 import play from 'play-dl';
-import { getQueue } from './queue-system';
-import { playMessage } from '../play-message';
-import handleError from '../../handlers/error-handler';
+import { getQueue } from './queue-system.js';
+import { playMessage } from '../play-message.js';
+import { handleError } from '../../handlers/error-handler.js';
 
-export async function playMusic(interaction) {
+export const playMusic = async (interaction) => {
 	// Refresh token if expired
 	if (play.is_expired()) await play.refreshToken();
 
@@ -60,14 +60,14 @@ export async function playMusic(interaction) {
 
 		if (oldState.status === 'playing' && newState.status === 'idle') {
 			guildQueue.position++;
-			this.playMusic(interaction);
+			await this.playMusic(interaction);
 		}
 	});
 
 	// Player Error Handler
-	player.on('error', error => {
+	player.on('error', async error => {
 		const handledError = handleError(error);
-		interaction.channel.send({ embeds:[handledError] });
-		this.playMusic(interaction);
+		await interaction.channel.send({ embeds:[handledError] });
+		await this.playMusic(interaction);
 	});
 }

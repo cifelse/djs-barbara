@@ -5,3 +5,8 @@ export const timeout = (embed) => {
 		embed.setColor(hexColor.error);
 		embed.setDescription('Connection Timeout.');
 }
+
+export const error = (embed) => {
+	embed.setColor(hexColor.error);
+	embed.setDescription('There was an error while executing the command.');
+}

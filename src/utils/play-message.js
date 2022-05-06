@@ -1,21 +1,20 @@
-const { getVoiceConnection, AudioPlayerStatus } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
-const { editEmbed } = require('./embeds/embeds');
+import { getVoiceConnection, AudioPlayerStatus } from '@discordjs/voice';
+import { MessageEmbed } from 'discord.js';
+import { play } from './embeds/player-embeds.js';
 
-module.exports = {
-	playMessage: async (interaction, song) => {
-		const embed = new MessageEmbed;
-		await editEmbed.play(embed, song);
-		const msg = await interaction.channel.send({ embeds: [embed] });
+export const playMessage = async (interaction, song) => {
+	const embed = new MessageEmbed;
+	await play(embed, song);
+	const msg = await interaction.channel.send({ embeds: [embed] });
 
-		const connection = getVoiceConnection(interaction.guild.id);
-		const player = connection.state.subscription.player;
+	const connection = getVoiceConnection(interaction.guild.id);
+	const player = connection.state.subscription.player;
 
-		player.on(AudioPlayerStatus.Idle, () => {
-			msg.delete()
+	player.on(AudioPlayerStatus.Idle, () => {
+		msg.delete()
 			.catch(error => {
-				if (error.code === 1008) console.error('Message Error: Message already deleted.');
+				if (error.code === 1008)
+					console.error('Message Error: Message already deleted.');
 			});
-		});
-	},
-};
+	});
+}

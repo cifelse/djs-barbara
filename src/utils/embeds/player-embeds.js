@@ -121,11 +121,6 @@ export const invalidUrl = (embed) => {
 	embed.addField('Invalid URL', 'Barbara does not support the URL provided.', true);
 }
 
-export const error = (embed) => {
-	embed.setColor(hexColor.error);
-	embed.setDescription('There was an error while executing the command.');
-}
-
 export const noSong = (embed) => {
 	embed.setColor(hexColor.error);
 	embed.setDescription('No song is currently playing.');

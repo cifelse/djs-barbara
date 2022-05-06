@@ -1,11 +1,11 @@
 import { MessageEmbed, MessageButton, MessageActionRow } from 'discord.js';
-import { editEmbed } from './utils/embeds';
+import { stopLoop, loop, noSong, play } from '../embeds/player-embeds.js';
 import hexColor from '../hex-values.json';
 
 const queue = new Map();
 let initial = 0;
 
-export function setQueue(guild, connection) {
+export const setQueue = (guild, connection) => {
 	const sourceChannel = {
 		voiceChannel: connection,
 		songs: [],
@@ -16,42 +16,42 @@ export function setQueue(guild, connection) {
 	return queue;
 }
 
-export function getQueue(guild) {
+export const getQueue = (guild) => {
 	return queue.get(guild);
 }
 
-export function addSongToQueue(guild, song) {
+export const addSongToQueue = (guild, song) => {
 	const channelQueue = queue.get(guild);
 	channelQueue.songs.push(song);
 }
 
-export function clearQueue(guild) {
+export const clearQueue = (guild) => {
 	const guildQueue = queue.get(guild);
 	guildQueue.songs = [];
 	guildQueue.position = 0;
 	return;
 }
 
-export function loopQueue(interaction) {
+export const loopQueue = async (interaction) => {
 	const guildQueue = queue.get(interaction.guild.id);
 	const embed = new MessageEmbed();
 	if (guildQueue.loop === true) {
 		guildQueue.loop = false;
-		editEmbed.stopLoop(embed, interaction);
+		stopLoop(embed, interaction);
 		interaction.reply({ embeds: [embed] });
 		return;
 	}
 	guildQueue.loop = true;
-	editEmbed.loop(embed, interaction);
-	interaction.reply({ embeds: [embed] });
+	loop(embed, interaction);
+	await interaction.reply({ embeds: [embed] });
 }
 
-export function stopLoop(guild) {
+export const stopLoop = (guild) => {
 	const guildQueue = queue.get(guild);
 	guildQueue.loop = false;
 }
 
-export function removeSong(guild, position) {
+export const removeSong = (guild, position) => {
 	const guildQueue = queue.get(guild);
 
 	if (!guildQueue.songs[position])
@@ -60,21 +60,21 @@ export function removeSong(guild, position) {
 	return guildQueue.songs.splice(position, 1);
 }
 
-export async function getNowPlaying(interaction, guild) {
+export const getNowPlaying = async (interaction, guild) => {
 	const guildQueue = queue.get(guild);
 	const songs = guildQueue.songs;
 
 	const embed = new MessageEmbed;
 	if (!songs[guildQueue.position]) {
-		editEmbed.noSong(embed);
+		noSong(embed);
 	}
 	else {
-		await editEmbed.play(embed, songs[guildQueue.position]);
+		await play(embed, songs[guildQueue.position]);
 	}
-	interaction.reply({ embeds: [embed] });
+	await interaction.reply({ embeds: [embed] });
 }
 
-export function presentQueue(guild, button) {
+export const presentQueue = (guild, button) => {
 	const queueEmbed = new MessageEmbed();
 	queueEmbed.setColor(hexColor.default);
 
@@ -134,7 +134,7 @@ export function presentQueue(guild, button) {
 	return queueEmbed;
 }
 
-export function makeQueue(interaction, guild) {
+export const makeQueue = async (interaction, guild) => {
 	const queueEmbed = new MessageEmbed();
 	queueEmbed.setColor(hexColor.default);
 
@@ -168,7 +168,7 @@ export function makeQueue(interaction, guild) {
 	if (!songs[0]) {
 		queueEmbed.setColor(hexColor.error);
 		queueEmbed.setDescription('No song is currently playing.');
-		interaction.reply({ embeds: [queueEmbed] });
+		await interaction.reply({ embeds: [queueEmbed] });
 		return;
 	}
 
@@ -188,5 +188,5 @@ export function makeQueue(interaction, guild) {
 	queueEmbed.setTitle('Queue');
 	queueEmbed.setDescription(queueString);
 
-	interaction.reply({ embeds: [queueEmbed], components: [queueButtons] });
+	await interaction.reply({ embeds: [queueEmbed], components: [queueButtons] });
 }
