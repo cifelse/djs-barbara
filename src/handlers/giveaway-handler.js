@@ -7,7 +7,7 @@ import { keys } from '../utils/keys.js';
 import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed } from '../utils/embeds/entertainment-embeds';
 
 // Get Necessary Keys
-const { roles: { admin, ram }, channels: { giveaway, logs: { giveawayLogs } } } = keys.concorde;
+const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { giveaway, logs: { giveawayLogs } } } = keys.concorde;
 
 export const startGiveaway = async (interaction, details, client) => {
 	// Create and Send Message Embed
@@ -75,7 +75,6 @@ export const scheduleGiveaway = async (client, details) => {
 				const row = new MessageActionRow();
 				row.addComponents(newButton);
 				await message.edit({ components: [row] });
-
 			});
 		}).start();
 	
@@ -145,10 +144,10 @@ export const addEntries = async (interaction, roles) => {
 
 	let multiplier;
 
-	if (roles.get(concorde.roles.multiplier.jetsetters)) multiplier = 4;
-	if (roles.get(concorde.roles.multiplier.businessClass)) multiplier = 3;
-	if (roles.get(concorde.roles.multiplier.premiumEcon)) multiplier = 2;
-	if (roles.get(concorde.roles.frequentFlyer)) multiplier = 1;
+	if (roles.get(jetsetters)) multiplier = 4;
+	if (roles.get(businessClass)) multiplier = 3;
+	if (roles.get(premiumEconomy)) multiplier = 2;
+	if (roles.get(frequentFlyers)) multiplier = 1;
 	
 	for (let i = 0; i < multiplier; i++) {
 		insertParticipant(giveawayId, discordId);
@@ -163,7 +162,7 @@ export const checkEligibility = async (interaction) => {
 	const requirementsField = interaction.message.embeds[0].fields.find(field => field.value.includes('Free for All'));
 	if (requirementsField) return true;
 
-	const eligible = interaction.member.roles.cache.some(role => role.id === concorde.roles.frequentFlyer || role.id === concorde.roles.multiplier.premiumEcon || role.id === concorde.roles.multiplier.businessClass || role.id === concorde.roles.multiplier.jetsetters);
+	const eligible = interaction.member.roles.cache.hasAny(frequentFlyers, premiumEconomy, businessClass, jetsetters);
 
 	return eligible;
 }
@@ -201,49 +200,48 @@ export const determineWinners = (users, winnerCount) => {
 
 export const rerollGiveaway = (interaction) => {
 	// Check Role
-	const roles = interaction.member.roles.cache;
-	if (roles.hasAny(admin.captain, admin.crew, ram.engineers, keys.hangar.roles.engineers)) {
-		const messageId	= interaction.message.embeds[0].footer.text;
-		const title = interaction.message.embeds[0].title;
-		const fields = interaction.message.embeds[0].fields;
-		
-		await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
-		const response = await interaction.channel.awaitMessages({ max: 1 });
-		const { content } = response.first();
-		const numberChecker = /^\d+$/;
-
-		if (!numberChecker.test(content)) {
-			await interaction.channel.send({ content: 'You entered an invalid number, honey. Why don\'t you press that Reroll button again?' });
-			return;
-		}
-
-		let channel;
-		fields.forEach(async field => {
-			if (field.name === '_ _\nChannel') {
-				channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
-			}
-		});
-
-		const winnerCount = content;
-
-		getParticipants(messageId, async users => {
-			const winners = determineWinners(users, winnerCount);
-			// Put winners in string
-			let winnerString = '';
-
-			if (winners.length > 0) {
-				winners.forEach(winner => {
-					winnerString += `<@${winner.discord_id}> `;
-				});
-			}
-			await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
-			await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
-			// Delete Response After Sending New Winners
-			response.first().delete();
-		});
-	}
-	else {
+	const eligible = interaction.member.roles.cache.hasAny(admin.captain, admin.crew, ram.engineers, keys.hangar.roles.engineers);
+	if (!eligible) {
 		await interaction.reply({ content: 'You are not eligible to use this button', ephemeral: true });
 		return;
 	}
+
+	const messageId	= interaction.message.embeds[0].footer.text;
+	const title = interaction.message.embeds[0].title;
+	const fields = interaction.message.embeds[0].fields;
+	
+	await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
+	const response = await interaction.channel.awaitMessages({ max: 1 });
+	const { content } = response.first();
+	const numberChecker = /^\d+$/;
+
+	if (!numberChecker.test(content)) {
+		await interaction.channel.send({ content: 'You entered an invalid number, honey. Why don\'t you press that Reroll button again?' });
+		return;
+	}
+
+	let channel;
+	fields.forEach(async field => {
+		if (field.name === '_ _\nChannel') {
+			channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
+		}
+	});
+
+	const winnerCount = content;
+
+	getParticipants(messageId, async users => {
+		const winners = determineWinners(users, winnerCount);
+		// Put winners in string
+		let winnerString = '';
+
+		if (winners.length > 0) {
+			winners.forEach(winner => {
+				winnerString += `<@${winner.discord_id}> `;
+			});
+		}
+		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
+		await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+		// Delete Response After Sending New Winners
+		response.first().delete();
+	});
 }

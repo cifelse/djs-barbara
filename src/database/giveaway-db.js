@@ -24,8 +24,7 @@ export const saveGiveaway = (details, callback) => {
 }
 
 // ENTERING A PARTICIPANT
-export const insertParticipant = (participant) => {
-    const { giveawayId, discordId } = participant;
+export const insertParticipant = (giveawayId, discordId) => {
 
     const con = createConnection({
         host: 'eu02-sql.pebblehost.com',
@@ -163,26 +162,6 @@ export const getEntries = (giveawayId, callback) => {
             if (err) throw err;
             con.end();
             callback(res);
-        });
-    });
-}
-
-export const addOneGiveawayCreated = () => {
-	const connection = createConnection({
-		host: 'eu02-sql.pebblehost.com',
-		user: 'customer_253110_giveaways',
-		password: 'LwtF8qJ6lEiEC3H!@KFm',
-		database: 'customer_253110_giveaways',
-	});
-
-    connection.connect(err => {
-        if (err) throw err;
-    
-        const sql = `UPDATE daily_logs SET giveaways_created = giveaways_created + 1 WHERE id = (SELECT MAX(id) FROM daily_logs)`;
-    
-        connection.query(sql, (err) => {
-			if (err) throw err;
-			connection.end();
         });
     });
 }
