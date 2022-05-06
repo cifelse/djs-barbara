@@ -1,3 +1,6 @@
+import { addToBidHistory, checkMiles, updateBid, updateEndTime } from "../database/auction-db.js";
+import { convertDateToTimestamp } from "./date-handler.js";
+
 export const modalHandler = async (modal) => {
 	if (modal.customId === 'bid') {
 		// Get necessary data
@@ -13,6 +16,7 @@ export const modalHandler = async (modal) => {
 				await modal.followUp({ content: `Invalid Input. Next Bids should be by 50s (ex. 200, 250, 300, 350, 400, ...)`, ephemeral: true });
 				return;
 			}
+			// Check if Bid is Greater than current bid
 			const embed = modal.message.embeds[0];
 			let value, invalidAmount;
 			embed.fields.forEach(field => {
@@ -31,6 +35,7 @@ export const modalHandler = async (modal) => {
 				await modal.followUp({ content: `Bid should be more than ${value} MILES.`, ephemeral: true });
 				return;
 			}
+
 			checkMiles(user.id, async userData => {
 				let fields, spliceValue;
 
@@ -53,6 +58,7 @@ export const modalHandler = async (modal) => {
 					
 					const timestampEndDate = convertDateToTimestamp(newEndDate);
 					updateEndTime(auctionId, timestampEndDate);
+					// Set New Bidder in Embed
 					spliceValue = 0;
 					fields = [
 						{
@@ -87,9 +93,10 @@ export const modalHandler = async (modal) => {
 						},
 					];
 				}
+
 				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
-				modal.message.edit({ embeds: [embed] });
+				await modal.message.edit({ embeds: [embed] });
 				updateBid(auctionId, user, bid);
 				addToBidHistory(auctionId, user.id, bid);
 				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
