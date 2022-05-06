@@ -1,11 +1,12 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { saveAuction, getAuction, getAuctions } from '../database/auction-db.js';
-import { editEmbed } from '../utils/embeds/embeds.js';
+import { auctionEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
 
 async function startAuction(interaction, details, client) {
-	const embed = editEmbed.auctionEmbed(details);
+	// Create and Send Message Embed
+	const embed = auctionEmbed(details);
 	const row = new MessageActionRow();
 	row.addComponents(
 		new MessageButton()
@@ -26,7 +27,7 @@ async function startAuction(interaction, details, client) {
 		});
 	});
 
-	// Send A Copy on Server Logs
+	// Edit embed and send to Auction Logs
 	embed.description = `An auction has started. Go to this auction by [clicking here.](${message.url})`;
 	embed.footer = { text: `${details.auction_id}` };
 	embed.timestamp = new Date();
@@ -54,6 +55,7 @@ async function scheduleAuction(client, details) {
 			let message;
 			const channel = await client.channels.fetch(channel_id);
 			if (channel) message = await channel.messages.fetch(auction_id);
+
 			// Edit Embed
 			const embed = message.embeds[0];
 			embed.color = 'RED';
@@ -62,11 +64,13 @@ async function scheduleAuction(client, details) {
 			const newRow = new MessageActionRow();
 			newRow.addComponents(button);
 			message.edit({ embeds: [embed], components: [newRow] });
+
 			// Get Auction and announce winner
 			getAuction(auction_id, async auction => {
 				// Get Auction and time
 				auction = auction[0];
 				const deadline = `<t:${Math.floor(Date.now() / 1000) + (360 * 60)}:R>`
+
 				if (!auction) return;
 				if (!auction.highest_bidder && !auction.bid) await channel.send(`Auction for **"${auction.title}"** has ended. Unfortunately, no one bidded in this Auction hence no winners.`);
 				else await channel.send(`Auction for **"${auction.title}"** has ended and has been won by <@${auction.highest_bidder}> with a bid of ${auction.bid} MILES. You have until ${deadline} to pay your MILES to Concorde.\n\nPay your MILES by typing \`/pay-miles <MILES>\` over at the <#956165537820459008> channel.`);

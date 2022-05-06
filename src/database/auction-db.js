@@ -182,23 +182,3 @@ export const addToBidHistory = (auctionId, bidderId, bid) => {
         });
     });
 }
-
-export const addOneAuctionCreated = () => {
-	const connection = mysql.createConnection({
-		host: 'eu02-sql.pebblehost.com',
-		user: 'customer_253110_giveaways',
-		password: 'LwtF8qJ6lEiEC3H!@KFm',
-		database: 'customer_253110_giveaways',
-	});
-
-    connection.connect(err => {
-        if (err) throw err;
-    
-        const sql = `UPDATE daily_logs SET auctions_created = auctions_created + 1 WHERE id = (SELECT MAX(id) FROM daily_logs)`;
-    
-        connection.query(sql, (err) => {
-			if (err) throw err;
-			connection.end();
-        });
-    });
-}
