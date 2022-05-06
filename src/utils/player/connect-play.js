@@ -1,7 +1,7 @@
 import { createAudioResource, createAudioPlayer, NoSubscriberBehavior, getVoiceConnection } from '@discordjs/voice';
 import play from 'play-dl';
 import { getQueue } from './queue-system.js';
-import { playMessage } from '../play-message.js';
+import { playMessage } from './play-message.js';
 import { handleError } from '../../handlers/error-handler.js';
 
 export const playMusic = async (interaction) => {

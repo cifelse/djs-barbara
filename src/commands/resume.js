@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { getVoiceConnection } from '@discordjs/voice';
 import { MessageEmbed } from 'discord.js';
 import { resume } from '../utils/embeds/player-embeds.js';
-import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { userNotConnected, botNotConnected } from '../utils/player/not-connected.js'
 
 export const data = new SlashCommandBuilder()
 	.setName('resume')

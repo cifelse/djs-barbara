@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { getVoiceConnection } from '@discordjs/voice';
 import { MessageEmbed } from 'discord.js';
-import { userNotConnected, botNotConnected } from '../utils/not-connected.js';
+import { userNotConnected, botNotConnected } from '../utils/player/not-connected.js'
 import { skip } from '../utils/embeds/player-embeds.js';
 
 export const data = new SlashCommandBuilder()

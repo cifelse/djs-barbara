@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { getVoiceConnection } from '@discordjs/voice';
 import { MessageEmbed } from 'discord.js';
-import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { userNotConnected, botNotConnected } from '../utils/player/not-connected.js'
 import { removeSong } from '../utils/player/queue-system.js';
 import { removeSong as removeSongEmbed } from '../utils/embeds/player-embeds.js';
 

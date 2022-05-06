@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { getVoiceConnection } from '@discordjs/voice';
-import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { userNotConnected, botNotConnected } from '../utils/player/not-connected.js'
 import { loopQueue } from '../utils/player/queue-system.js';
 
 export const data = new SlashCommandBuilder()

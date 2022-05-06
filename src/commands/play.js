@@ -5,10 +5,10 @@ import { is_expired, refreshToken, validate, search, playlist_info, spotify, sou
 import { MessageEmbed } from 'discord.js';
 
 // Own Exports
-import { userNotConnected } from '../utils/not-connected.js';
+import { userNotConnected } from '../utils/player/not-connected.js';
 import { invalidUrl, youtubePlaylist, spotifyPlaylist, spotifyAlbum, soundcloudPlaylist, addedToQueue } from '../utils/embeds/player-embeds.js';
 import { addSongToQueue, setQueue } from '../utils/player/queue-system.js';
-import { getSongData } from '../utils/song-data.js';
+import { getSongData } from '../utils/player/song-data.js';
 import { playMusic } from '../utils/player/connect-play.js';
 
 export const data = new SlashCommandBuilder()
