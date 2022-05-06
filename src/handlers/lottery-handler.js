@@ -1,14 +1,15 @@
 import { MessageButton, MessageActionRow, MessageEmbed } from 'discord.js';
-import { editEmbed } from './embeds';
-import { hangar, concorde } from './ids.json';
 import { scheduleJob } from 'node-schedule';
-import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } from '../database/lottery-db';
+import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } from '../database/lottery-db.js';
+import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds';
 import { CronJob } from 'cron';
-import { concorde as _concorde } from './ids.json';
-import { convertTimestampToDate } from './date-handler';
+import { keys } from '../utils/keys.js';
 
-async function startLottery(interaction, details, client) {
-	const embed = editEmbed.lotteryEmbed(interaction, details);
+const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { lottery, logs: { lotteryLogs } } } = keys.concorde;
+
+export const startLottery = async (interaction, details, client) => {
+	// Create and Send Message Embed
+	const embed = lotteryEmbed(interaction, details);
 	const row = new MessageActionRow();
 	row.addComponents(
 		new MessageButton()
@@ -30,7 +31,7 @@ async function startLottery(interaction, details, client) {
 	});
 	await interaction.reply({ content: `Lottery successfully launched for **"${details.title}"**!` });
 
-	// Send A Copy on Server Logs
+	// Edit embed and send to Lottery Logs
 	embed.setDescription(`A lottery has started. Go to this lottery by [clicking here.](${message.url})`);
 	embed.addField('_ _\nChannel', `<#${details.channel_id}>`);
 	embed.setFooter({ text: `${details.lottery_id}` });
@@ -38,21 +39,23 @@ async function startLottery(interaction, details, client) {
 	embed.fields.forEach(field => {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
-	const logsChannel = interaction.guild.channels.cache.get(concorde.channels.lotteryLogs);
+	const logsChannel = interaction.guild.channels.cache.get(lotteryLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
-async function scheduleLottery(client, details) {
+export const scheduleLottery = async (client, details) => {
 	for (let i = 0; i < details.length; i++) {
 		const { title, num_winners, end_date, channel_id, lottery_id } = details[i];
+		
+		// Check if Lottery is already finished
 		const currentDate = new Date().getTime();
-
 		if (end_date.getTime() < currentDate) continue;
 		
 		console.log('Barbara: Alert! I\'m Scheduling a Lottery for', title);
 		
-		let message;
+		// Get channel and message to edit and announce winners
 		const channel = await client.channels.fetch(channel_id);
+		let message;
 		if (channel) message = await channel.messages.fetch(lottery_id);
 			
 		const watchEntries = new CronJob('* * * * * *', () => {
@@ -63,7 +66,7 @@ async function scheduleLottery(client, details) {
 				// Check for number of entries
 				if (entries == newButton.label.replace(/[^\d]+/gi, '')) return;
 
-				console.log(`Barbara: There are a total of ${entries} participants now!`);
+				console.log(`Barbara: There are a total of ${entries} lottery participants now!`);
 
 				newButton.setLabel(`🎫 ${entries}`);
 				const row = new MessageActionRow();
@@ -71,8 +74,7 @@ async function scheduleLottery(client, details) {
 				await message.edit({ components: [row] });
 
 			});
-		});
-		watchEntries.start();
+		}).start();
 		
 		scheduleJob(end_date, async () => {
 			watchEntries.stop();
@@ -91,80 +93,16 @@ async function scheduleLottery(client, details) {
 					winnerString = 'None';
 				}
 				
-				// Get channel and message to edit and announce winners
-				if (channel) {
-					if (message) {
-						// Edit Embed of Lottery Message
-						const editedEmbed = message.embeds[0];
-						editedEmbed.setColor('RED');
-						editedEmbed.setFooter({ text: `${message.id}` });
-						editedEmbed.setTimestamp();
-						editedEmbed.spliceFields(0, editedEmbed.fields.length, [
-							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
-							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: true },
-						]);
-						
-						if (winners.length === 0) {
-							editedEmbed.setDescription('**Lottery has ended.** Sadly, no one joined the lottery so no one won. 😢');
-							message.edit({ embeds:[editedEmbed], components: [] });
-						}
-						else {
-							editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
-							const disabledButton = message.components[0].components[0];
-							disabledButton.setDisabled(true);
-							const newRow = new MessageActionRow();
-							newRow.addComponents(disabledButton);
-							message.edit({ embeds:[editedEmbed], components: [newRow] });
-							channel.send(`Congratulations to ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
-						}
-
-						// Edit Lottery logs message
-						const serverLogs = client.channels.cache.get(concorde.channels.lotteryLogs);
-						let logMessage;
-						if (serverLogs) {
-							const logMessages = await serverLogs.messages.fetch({ limit: 20 });
-							logMessages.forEach(fetchedMessage => {
-								if (!fetchedMessage.embeds[0] || !fetchedMessage.embeds[0].footer) return;
-								if (fetchedMessage.embeds[0].footer.text === lottery_id) {
-									logMessage = fetchedMessage;
-								}
-							});
-						}
-						const row = new MessageActionRow();
-						const rerollButton = new MessageButton()
-							.setCustomId('reroll')
-							.setLabel('Reroll')
-							.setStyle('DANGER');
-						row.addComponents(rerollButton);
-
-						const newEmbed = new MessageEmbed();
-						newEmbed.setTitle(`${title}`);
-						newEmbed.setColor('RED');
-						newEmbed.setDescription(`Lottery has ended. Go to this lottery by [clicking here.](${message.url})`);
-						newEmbed.setFooter({ text: `${lottery_id}` });
-						newEmbed.setTimestamp();
-						newEmbed.spliceFields(0, newEmbed.fields.length, [
-							{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
-							{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
-							{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
-							{ name: '_ _\nReroll Reminder', value: `Only the <@&${_concorde.roles.headPilot}> and the <@&${_concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
-						]);
-						
-						if (winners.length === 0) {
-							rerollButton.setDisabled(true);
-						}
-						// If there are winners
-						const newRow = new MessageActionRow();
-						newRow.addComponents(rerollButton);
-						await logMessage.edit({ embeds:[newEmbed], components: [newRow] });						
-					}
+				if (channel && message) {
+					await announceLotteryWinners(message, winnerString, title);
+					await editLotteryLog(client, details[i], message, winnerString);						
 				}
 			});
 		});
 	}
 }
 
-function determineWinners(users, winnerCount) {
+export const determineWinners = (users, winnerCount) => {
     const numWinners = parseInt(winnerCount);
     const winners = [];
 
@@ -191,11 +129,11 @@ function determineWinners(users, winnerCount) {
         users.splice(random, 1);
     }
 
-	console.log('Barbara: I\'ve successfully chosen the winners!');
+	console.log('Barbara: I\'ve successfully chosen the Lottery winners!');
     return winners;
 }
 
-function confirmBet(interaction) {
+export const confirmBet = (interaction) => {
 	const lotteryId = interaction.message.id;
 	const discordId = interaction.user.id;
 
@@ -230,13 +168,12 @@ function confirmBet(interaction) {
 	});
 }
 
-async function enterLottery(interaction) {
+export const enterLottery = (interaction) => {
 	const lotteryId = interaction.message.embeds[0].footer.text.replace(/[^\d]+/gi, '');
 	const discordId = interaction.user.id;
 
 	getStrictMode(lotteryId, async lottery => {
-		const { frequentFlyer, multiplier: { premiumEcon, businessClass, jetsetters } } = concorde.roles;
-		const eligibleRole = interaction.member.roles.cache.hasAny(frequentFlyer, premiumEcon, businessClass, jetsetters);
+		const eligibleRole = interaction.member.roles.cache.hasAny(frequentFlyers, premiumEconomy, businessClass, jetsetters);
 		const embed = interaction.message.embeds[0];
 		embed.setFooter({ text: ' ' });
 
@@ -288,7 +225,7 @@ async function enterLottery(interaction) {
 	});
 }
 
-async function completeBet(interaction) {
+export const completeBet = async (interaction) => {
 	const embed = interaction.message.embeds[0];
 	const fragments = embed.description.split("**");
 	embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉`;
@@ -296,59 +233,49 @@ async function completeBet(interaction) {
 	await interaction.update({ embeds: [embed], components:[] });
 }
 
-async function rerollLottery(interaction) {
+export const rerollLottery = async (interaction) => {
 	// Check Role
-	const roles = interaction.member.roles.cache;
-	if (roles.has(concorde.roles.crew) || roles.has(concorde.roles.headPilot) || roles.has(concorde.roles.aircraftEngineers) || roles.has(hangar.roles.aircraftEngineers)) {
-		let channel;
-		const messageId	= interaction.message.embeds[0].footer.text;
-		const title = interaction.message.embeds[0].title;
-		const fields = interaction.message.embeds[0].fields;
-		
-		await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
-		const response = await interaction.channel.awaitMessages({ max: 1 });
-		const { content } = response.first();
-		const numberChecker = /^\d+$/;
-
-		if (!numberChecker.test(content)) {
-			await interaction.channel.send({ content: 'You entered an invalid number, honey. Why don\'t you press that Reroll button again?' });
-			return;
-		}
-
-		fields.forEach(async field => {
-			if (field.name === '_ _\nChannel') {
-				channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
-			}
-		});
-
-		const winnerCount = content;
-
-		getGamblers(messageId, async users => {
-			const winners = determineWinners(users, winnerCount);
-			// Put winners in string
-			let winnerString = '';
-
-			if (winners.length > 0) {
-				winners.forEach(winner => {
-					winnerString += `<@${winner.discord_id}> `;
-				});
-			}
-			await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
-			await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
-			// Delete Response After Sending New Winners
-			response.first().delete();
-		});
-	}
-	else {
+	const eligible = interaction.member.roles.cache.hasAny(admin.captain, admin.crew, ram.engineers, keys.hangar.roles.engineers);
+	if (!eligible) {
 		await interaction.reply({ content: 'You are not eligible to use this button', ephemeral: true });
 		return;
 	}
-}
+	const messageId	= interaction.message.embeds[0].footer.text;
+	const title = interaction.message.embeds[0].title;
+	const fields = interaction.message.embeds[0].fields;
+	
+	await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
+	const response = await interaction.channel.awaitMessages({ max: 1 });
+	const { content } = response.first();
+	const numberChecker = /^\d+$/;
 
-export default {
-	startLottery,
-	scheduleLottery,
-	enterLottery,
-	confirmBet,
-	rerollLottery
-};
+	if (!numberChecker.test(content)) {
+		await interaction.channel.send({ content: 'You entered an invalid number, honey. Why don\'t you press that Reroll button again?' });
+		return;
+	}
+
+	let channel;
+	fields.forEach(async field => {
+		if (field.name === '_ _\nChannel') {
+			channel = await interaction.guild.channels.cache.get(field.value.replace(/[^\d]+/gi, ''));
+		}
+	});
+
+	const winnerCount = content;
+
+	getGamblers(messageId, async users => {
+		const winners = determineWinners(users, winnerCount);
+		// Put winners in string
+		let winnerString = '';
+
+		if (winners.length > 0) {
+			winners.forEach(winner => {
+				winnerString += `<@${winner.discord_id}> `;
+			});
+		}
+		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
+		await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
+		// Delete Response After Sending New Winners
+		response.first().delete();
+	});
+}

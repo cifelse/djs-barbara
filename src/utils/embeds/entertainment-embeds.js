@@ -1,6 +1,6 @@
 import { convertTimestampToDate } from "../../handlers/date-handler.js";
 import { keys } from "../keys.js";
-const { roles: { admin, ram }, channels: { giveaway, logs: { giveawayLogs } } } = keys.concorde;
+const { roles: { admin, ram }, channels: { giveaway, lottery, logs: { giveawayLogs, lotteryLogs } } } = keys.concorde;
 
 // Giveaway Embeds
 export const giveawayEmbed = (interaction, giveawayDetails) => {
@@ -37,25 +37,25 @@ export const announceGiveawayWinners = async (message, winners, title) => {
 		{ name: '_ _\nWinner/s', value: `${winners}`, inline: true },
 	]);
 
-	if (winners.length === 0) {
+	// Announce Winners
+	if (winners === 'None') {
 		editedEmbed.setDescription('**Giveaway has ended.** Sadly, no one joined the giveaway so no one won. 😢');
 		await message.edit({ embeds:[editedEmbed], components: [] });
+		return;
 	}
-	else {
-		editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
-		const disabledButton = message.components[0].components[0];
-		disabledButton.setDisabled(true);
-		const newRow = new MessageActionRow();
-		newRow.addComponents(disabledButton);
+	editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
+	const disabledButton = message.components[0].components[0];
+	disabledButton.setDisabled(true);
+	const newRow = new MessageActionRow();
+	newRow.addComponents(disabledButton);
 
-		// Send Winner Message
-		await message.edit({ embeds:[editedEmbed], components: [newRow] });
-		await channel.send(`Congratulations to ${winners}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
-	}
+	// Send Winner Message
+	await message.edit({ embeds:[editedEmbed], components: [newRow] });
+	await channel.send(`Congratulations to ${winners}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
 }
 
 export const editGiveawayLog = async (client, giveaway, message, winners) => {
-	const { title, num_winners, end_date, channel_id, giveaway_id } = giveaway;
+	const { title, channel_id, giveaway_id } = giveaway;
 
 	// Edit Giveaway log message
 	const logsChannel = client.channels.cache.get(giveawayLogs);
@@ -67,6 +67,7 @@ export const editGiveawayLog = async (client, giveaway, message, winners) => {
 			if (fetchedMessage.embeds[0].footer.text === giveaway_id) logMessage = fetchedMessage;
 		});
 	}
+
 	// Create Reroll Button
 	const row = new MessageActionRow();
 	const rerollButton = new MessageButton()
@@ -118,6 +119,79 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 	else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${concorde.roles.frequentFlyer}> (Level 10)`);
 	
 	return lotteryEmbed;
+}
+
+export const announceLotteryWinners = async (message, winners, title) => {
+	// Edit Embed of Lottery Message
+	const editedEmbed = message.embeds[0];
+	editedEmbed.setColor('RED');
+	editedEmbed.setFooter({ text: `${message.id}` });
+	editedEmbed.setTimestamp();
+	editedEmbed.spliceFields(0, editedEmbed.fields.length, [
+		{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
+		{ name: '_ _\nWinner/s', value: `${winners}`, inline: true },
+	]);
+
+	// Announce Winners
+	if (winners === 'None') {
+		editedEmbed.setDescription('**Lottery has ended.** Sadly, no one joined the lottery so no one won. 😢');
+		message.edit({ embeds:[editedEmbed], components: [] });
+		return;
+	}
+	editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
+	const disabledButton = message.components[0].components[0];
+	disabledButton.setDisabled(true);
+	const newRow = new MessageActionRow();
+	newRow.addComponents(disabledButton);
+
+	// Send Winner Message
+	await message.edit({ embeds:[editedEmbed], components: [newRow] });
+	await channel.send(`Congratulations to ${winners}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
+}
+
+export const editLotteryLog = async (client, lottery, message, winners) => {
+	const { title, channel_id, lottery_id } = lottery;
+	
+	// Edit Lottery logs message
+	const logsChannel = client.channels.cache.get(lotteryLogs);
+	let logMessage;
+	if (logsChannel) {
+		const logMessages = await logsChannel.messages.fetch({ limit: 20 });
+		logMessages.forEach(fetchedMessage => {
+			if (!fetchedMessage.embeds[0] || !fetchedMessage.embeds[0].footer) return;
+			if (fetchedMessage.embeds[0].footer.text === lottery_id) logMessage = fetchedMessage;
+		});
+	}
+
+	// Create Reroll Button
+	const row = new MessageActionRow();
+	const rerollButton = new MessageButton()
+		.setCustomId('reroll')
+		.setLabel('Reroll')
+		.setStyle('DANGER');
+	row.addComponents(rerollButton);
+
+	// Edit Embed
+	const newEmbed = new MessageEmbed();
+	newEmbed.setTitle(`${title}`);
+	newEmbed.setColor('RED');
+	newEmbed.setDescription(`Lottery has ended. Go to this lottery by [clicking here.](${message.url})`);
+	newEmbed.setFooter({ text: `${lottery_id}` });
+	newEmbed.setTimestamp();
+	newEmbed.spliceFields(0, newEmbed.fields.length, [
+		{ name: '_ _\nEnded', value: `<t:${Math.floor(Date.now() / 1000)}:R>`, inline: true }, 
+		{ name: '_ _\nChannel', value: `<#${channel_id}>`, inline: true },
+		{ name: '_ _\nWinner/s', value: `${winnerString}`, inline: false },
+		{ name: '_ _\nReroll Reminder', value: `Only the <@&${_concorde.roles.headPilot}> and the <@&${_concorde.roles.crew}> can use the Reroll Button.\n\nFor additional protection, **the Reroll Button will be disabled after 24 hours.**`, inline: false },
+	]);
+	
+	if (winners === 'None') {
+		rerollButton.setDisabled(true);
+	}
+	// If there are winners
+	const newRow = new MessageActionRow();
+	newRow.addComponents(rerollButton);
+	await logMessage.edit({ embeds:[newEmbed], components: [newRow] });
 }
 
 // Auction Embeds
