@@ -73,6 +73,9 @@ export const keys = {
                 transactions: "956164953142870126",
                 access: "909275910245613568",
                 miles: "961190610105151488",
+                giveawayLogs: "970575461862215700",
+                lotteryLogs: "945328638268694618",
+                auctionLogs: "961190559261810738",
             }, 
 
             counters: {
