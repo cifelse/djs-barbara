@@ -4,7 +4,7 @@ import { auctionEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
 
-async function startAuction(interaction, details, client) {
+export const startAuction = async (interaction, details, client) => {
 	// Create and Send Message Embed
 	const embed = auctionEmbed(details);
 	const row = new MessageActionRow();
@@ -35,11 +35,11 @@ async function startAuction(interaction, details, client) {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get(keys.concorde.channels.auction);
+	const logsChannel = interaction.guild.channels.cache.get('939049510288650321');
 	await logsChannel.send({ embeds: [embed] });
 }
 
-async function scheduleAuction(client, details) {
+export const scheduleAuction = async (client, details) => {
 	// Get Details of Auctions
 	for (let i = 0; i < details.length; i++) {
 		const { auction_id, title, end_date, channel_id } = details[i];
@@ -84,8 +84,3 @@ async function scheduleAuction(client, details) {
 		client.auctionSchedules.push(schedule);
 	}
 }
-
-export default {
-	startAuction,
-	scheduleAuction,
-};

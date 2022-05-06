@@ -1,7 +1,8 @@
+import ms from "ms";
 import { addToBidHistory, checkMiles, updateBid, updateEndTime } from "../database/auction-db.js";
 import { convertDateToTimestamp } from "./date-handler.js";
 
-export const modalHandler = async (modal) => {
+export const modalHandler = async (client, modal) => {
 	if (modal.customId === 'bid') {
 		// Get necessary data
 		await modal.deferReply({ ephemeral: true });
