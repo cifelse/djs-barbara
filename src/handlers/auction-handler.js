@@ -35,7 +35,7 @@ export const startAuction = async (interaction, details, client) => {
 		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
 	});
 	embed.fields.splice(2, 4);
-	const logsChannel = interaction.guild.channels.cache.get('939049510288650321');
+	const logsChannel = interaction.guild.channels.cache.get(keys.concorde.channels.logs.auctionLogs);
 	await logsChannel.send({ embeds: [embed] });
 }
 
