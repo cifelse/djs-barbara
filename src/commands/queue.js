@@ -1,19 +1,18 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getVoiceConnection } = require('@discordjs/voice');
-const { makeQueue } = require('../src/queue-system');
-const { userNotConntected, botNotConnected } = require('../src/utils/not-connected');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection } from '@discordjs/voice';
+import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { makeQueue } from '../utils/player/queue-system.js';
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('queue')
-		.setDescription('Checks queue'),
-	async execute(interaction) {
-		const guild = interaction.guild.id;
-		const connection = getVoiceConnection(guild);
+export const data = new SlashCommandBuilder()
+	.setName('queue')
+	.setDescription('Checks queue');
 
-		if (userNotConntected(interaction)) return;
-		if (botNotConnected(interaction, connection)) return;
+export const execute = async (interaction) => {
+	const guild = interaction.guild.id;
+	const connection = getVoiceConnection(guild);
 
-		makeQueue(interaction, guild);
-	},
-};
+	if (await userNotConnected(interaction)) return;
+	if (await botNotConnected(interaction, connection)) return;
+
+	await makeQueue(interaction, guild);
+}

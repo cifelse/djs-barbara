@@ -1,25 +1,25 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getVoiceConnection } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
-const { clearQueue, stopLoop } = require('../src/queue-system');
-const { editEmbed } = require('../src/utils/embeds');
-const { userNotConntected, botNotConnected } = require('../src/utils/not-connected');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection } from '@discordjs/voice';
+import { MessageEmbed } from 'discord.js';
+import { disconnect } from '../utils/embeds/player-embeds.js';
+import { userNotConnected, botNotConnected } from '../utils/not-connected.js'
+import { clearQueue, stopLoop } from '../utils/player/queue-system.js';
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('disconnect')
-		.setDescription('Disconnects from the voice channel.'),
-	async execute(interaction) {
-		const connection = getVoiceConnection(interaction.guild.id);
-		if (userNotConntected(interaction)) return;
-		if (botNotConnected(interaction, connection)) return;
+export const data = new SlashCommandBuilder()
+	.setName('disconnect')
+	.setDescription('Disconnects from the voice channel.');
 
-		clearQueue(interaction.guild.id);
-		stopLoop(interaction.guild.id);
-		connection.destroy();
+export const execute = async (interaction) => {
+	const connection = getVoiceConnection(interaction.guild.id);
+	
+	if (await userNotConnected(interaction)) return;
+	if (await botNotConnected(interaction, connection)) return;
 
-		const embed = new MessageEmbed();
-		editEmbed.disconnect(embed, interaction);
-		await interaction.reply({ embeds: [embed] });
-	},
-};
+	clearQueue(interaction.guild.id);
+	stopLoop(interaction.guild.id);
+	connection.destroy();
+
+	const embed = new MessageEmbed();
+	disconnect(embed, interaction);
+	await interaction.reply({ embeds: [embed] });
+}

@@ -1,17 +1,17 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getVoiceConnection } = require('@discordjs/voice');
-const { loopQueue } = require('../src/queue-system');
-const { userNotConntected, botNotConnected } = require('../src/utils/not-connected');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection } from '@discordjs/voice';
+import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { loopQueue } from '../utils/player/queue-system.js';
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('loop')
-		.setDescription('Loops the queue'),
-	async execute(interaction) {
-		const connection = getVoiceConnection(interaction.guild.id);
-		if (userNotConntected(interaction)) return;
-		if (botNotConnected(interaction, connection)) return;
+export const data = new SlashCommandBuilder()
+	.setName('loop')
+	.setDescription('Loops the queue');
 
-		loopQueue(interaction);
-	},
-};
+export const execute = async (interaction) => {
+	const connection = getVoiceConnection(interaction.guild.id);
+	
+	if (await userNotConnected(interaction)) return;
+	if (await botNotConnected(interaction, connection)) return;
+
+	await loopQueue(interaction);
+}

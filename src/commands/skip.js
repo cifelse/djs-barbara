@@ -1,23 +1,23 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getVoiceConnection } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
-const { editEmbed } = require('../src/utils/embeds');
-const { userNotConntected, botNotConnected } = require('../src/utils/not-connected');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection } from '@discordjs/voice';
+import { MessageEmbed } from 'discord.js';
+import { userNotConntected, botNotConnected } from '../src/utils/not-connected.js';
+import { skip } from '../utils/embeds/player-embeds.js';
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('skip')
-		.setDescription('Skips current track'),
-	async execute(interaction) {
-		const connection = getVoiceConnection(interaction.guild.id);
-		if (userNotConntected(interaction)) return;
-		if (botNotConnected(interaction, connection)) return;
-		
-		const player = connection.state.subscription.player;
-		player.stop();
+export const data = new SlashCommandBuilder()
+	.setName('skip')
+	.setDescription('Skips current track');
 
-		const embed = new MessageEmbed();
-		editEmbed.skip(embed, interaction);
-		await interaction.reply({ embeds: [embed] });
-	},
-};
+export const execute = async (interaction) => {
+	const connection = getVoiceConnection(interaction.guild.id);
+
+	if (await userNotConntected(interaction)) return;
+	if (await botNotConnected(interaction, connection)) return;
+
+	const player = connection.state.subscription.player;
+	player.stop();
+
+	const embed = new MessageEmbed();
+	skip(embed, interaction);
+	await interaction.reply({ embeds: [embed] });
+}

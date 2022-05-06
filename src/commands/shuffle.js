@@ -1,31 +1,31 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getVoiceConnection } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
-const { getQueue } = require('../src/queue-system');
-const { editEmbed } = require('../src/utils/embeds');
-const { userNotConntected, botNotConnected } = require('../src/utils/not-connected');
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { getVoiceConnection } from '@discordjs/voice';
+import { MessageEmbed } from 'discord.js';
+import { shuffle } from '../utils/embeds/player-embeds.js';
+import { botNotConnected, userNotConnected } from '../utils/not-connected.js';
+import { getQueue } from '../utils/player/queue-system.js';
 
-module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('shuffle')
-		.setDescription('Shuffles the queue'),
-	async execute(interaction) {
-		const guild = interaction.guild.id;
-		const connection = getVoiceConnection(guild);
-		if (userNotConntected(interaction)) return;
-		if (botNotConnected(interaction, connection)) return;
+export const data = new SlashCommandBuilder()
+	.setName('shuffle')
+	.setDescription('Shuffles the queue');
 
-		const queue = getQueue(guild);
+export const execute = async (interaction) => {
+	const guild = interaction.guild.id;
+	const connection = getVoiceConnection(guild);
 
-		for (let position = queue.songs.length - 1; position > 0; position--) {
-			const newPosition = Math.floor(Math.random() * (position + 1));
-			const placeholder = queue.songs[position];
-			queue.songs[position] = queue.songs[newPosition];
-			queue.songs[newPosition] = placeholder;
-		}
+	if (await userNotConnected(interaction)) return;
+	if (await botNotConnected(interaction, connection)) return;
 
-		const embed = new MessageEmbed();
-		editEmbed.shuffle(embed, interaction);
-		await interaction.reply({ embeds: [embed] });
-	},
-};
+	const queue = getQueue(guild);
+
+	for (let position = queue.songs.length - 1; position > 0; position--) {
+		const newPosition = Math.floor(Math.random() * (position + 1));
+		const placeholder = queue.songs[position];
+		queue.songs[position] = queue.songs[newPosition];
+		queue.songs[newPosition] = placeholder;
+	}
+
+	const embed = new MessageEmbed();
+	shuffle(embed, interaction);
+	await interaction.reply({ embeds: [embed] });
+}
