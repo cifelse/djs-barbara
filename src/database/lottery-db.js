@@ -223,7 +223,7 @@ export const insertLotteryWinner = (lotteryId, user) => {
     pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `INSERT INTO lottery_winners (lottery_id, discord_id) VALUES ('${lotteryId}', '${user.id}');`;
+        const sql = `INSERT INTO lottery_winners (lottery_id, discord_id) VALUES ('${lotteryId}', '${user.discord_id}');`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
