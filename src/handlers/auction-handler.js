@@ -1,5 +1,5 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
-import { saveAuction, getAuction, getAuctions } from '../database/auction-db.js';
+import { saveAuction, getAuction, getAuctions, insertAuctionWinner } from '../database/auction-db.js';
 import { auctionEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
@@ -72,8 +72,12 @@ export const scheduleAuction = async (client, details) => {
 				const deadline = `<t:${Math.floor(Date.now() / 1000) + (360 * 60)}:R>`
 
 				if (!auction) return;
-				if (!auction.highest_bidder && !auction.bid) await channel.send(`Auction for **"${auction.title}"** has ended. Unfortunately, no one bidded in this Auction hence no winners.`);
-				else await channel.send(`Auction for **"${auction.title}"** has ended and has been won by <@${auction.highest_bidder}> with a bid of ${auction.bid} MILES. You have until ${deadline} to pay your MILES to Concorde.\n\nPay your MILES by typing \`/pay-miles <MILES>\` over at the <#956165537820459008> channel.`);
+				if (!auction.highest_bidder && !auction.bid) {
+					await channel.send(`Auction for **"${auction.title}"** has ended. Unfortunately, no one bidded in this Auction hence no winners.`);
+					return;
+				}
+				await channel.send(`Auction for **"${auction.title}"** has ended and has been won by <@${auction.highest_bidder}> with a bid of ${auction.bid} MILES. You have until ${deadline} to pay your MILES to Concorde.\n\nPay your MILES by typing \`/pay-miles <MILES>\` over at the <#956165537820459008> channel.`);
+				insertAuctionWinner(auction_id, auction.highest_bidder, auction.bid);
 			});
 			
 		});
