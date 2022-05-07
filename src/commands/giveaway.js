@@ -20,13 +20,11 @@ export const data = new SlashCommandBuilder()
 	.addStringOption(option => option.setName('duration')
 		.setDescription('Enter the duration of giveaway.')
 		.setRequired(false))
-	.addStringOption(option => option.setName('multiplier')
-		.setDescription('Set multiplier to on or off')
-		.addChoices({ name: 'on', value: '1' }, { name: 'off', value: '0' })
+	.addBooleanOption(option => option.setName('multiplier')
+		.setDescription('Set multiplier to true or false')
 		.setRequired(false))
-	.addStringOption(option => option.setName('free-for-all')
+	.addBooleanOption(option => option.setName('free-for-all')
 		.setDescription('Include everyone in the giveaway')
-		.addChoices({ name: 'on', value: '1' }, { name: 'off', value: '0' })
 		.setRequired(false))
 	.addChannelOption(option => option.setName('channel')
 		.setDescription('Enter the channel where you want to start the giveaway.')
@@ -51,8 +49,8 @@ export const execute = async (interaction, client) => {
 	// Set default values for Giveaway Details
 	if (!winnerCount) winnerCount = 1;
 	if (!duration) duration = '24h';
-	if (!multiplier) multiplier = 0;
-	if (!ffa) ffa = 0;
+	if (!multiplier) multiplier = false;
+	if (!ffa) ffa = false;
 	if (!channelId) channelId = keys.concorde.channels.giveaway;
 	else channelId = channelId.id;
 
