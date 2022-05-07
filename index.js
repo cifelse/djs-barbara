@@ -94,4 +94,4 @@ process.on('unhandledRejection', error => {
 	console.error('Barbara encountered an unhandled promise rejection:', error);
 });
 
-client.login(process.env.SWITCH_TOKEN);
+client.login(process.env.TOKEN);
