@@ -50,7 +50,7 @@ export const execute = async (interaction, client) => {
 	let duration = interaction.options.getString('duration');
 	let price = interaction.options.getInteger('price');
 	let max_tickets = interaction.options.getInteger('max');
-	let ffa = interaction.options.getString('free-for-all');
+	let ffa = interaction.options.getBoolean('free-for-all');
 	let channelId = interaction.options.getChannel('channel');
 
 	// Set default values for Lottery Details

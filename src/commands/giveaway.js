@@ -42,8 +42,8 @@ export const execute = async (interaction, client) => {
 	const title = interaction.options.getString('title');
 	let winnerCount = interaction.options.getInteger('winners');
 	let duration = interaction.options.getString('duration');
-	let multiplier = interaction.options.getString('multiplier');
-	let ffa = interaction.options.getString('free-for-all');
+	let multiplier = interaction.options.getBoolean('multiplier');
+	let ffa = interaction.options.getBoolean('free-for-all');
 	let channelId = interaction.options.getChannel('channel');
 
 	// Set default values for Giveaway Details
