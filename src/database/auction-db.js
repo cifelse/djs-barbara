@@ -65,12 +65,12 @@ export const checkMiles = (discordId, callback) => {
     });
 }
 
-export const insertAuctionWinner = (auctionId, user, bid) => {
+export const insertAuctionWinner = (auctionId, winnerId, bid) => {
 
     pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `INSERT INTO auction_winners (auction_id, discord_id, bid) VALUES ('${auctionId}', '${user.id}', ${bid});`;
+        const sql = `INSERT INTO auction_winners (auction_id, discord_id, bid) VALUES ('${auctionId}', '${winnerId}', ${bid});`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
@@ -94,22 +94,17 @@ export const getAuctions = (callback) => {
     });
 }
 
-export const getAuction = (auction_id, callback) => {
+export const getAuctionWinner = (auctionId, callback) => {
 
 	pool.getConnection((err, connection) => {
         if (err) throw err;
     
-		const sql = `SELECT * FROM auctions WHERE auction_id = "${auction_id}"`;
+		const sql = `SELECT * FROM auction_entries WHERE auction_id = '${auctionId}' ORDER BY bid DESC LIMIT 1;`;
         
 		connection.query(sql, (err, res) => {
 			if (err) throw err;
-			if (!res[0]) {
-				connection.release();
-				callback(res);
-				return;
-			}
 			connection.release();
-			callback(res);
+			callback(res[0]);
 		});
 	});
 }
@@ -128,15 +123,29 @@ export const updateEndTime = (auctionId, endDate) => {
     });
 }
 
-export const addToBidHistory = (auctionId, bidderId, bid) => {
+export const addAuctionEntry = (auctionId, bidderId, bid) => {
     pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `INSERT INTO auction_entries (auction_id, bidder_id, bid) VALUES ('${auctionId}', '${bidderId}', '${bid}');`;
+        const sql = `INSERT INTO auction_entries (auction_id, discord_id, bid) VALUES ('${auctionId}', '${bidderId}', '${bid}');`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
 			connection.release();
         });
+    });
+}
+
+export const payMiles = (discordId, quantity) => {
+	pool.getConnection((err, connection) => {
+        if (err) throw err;
+    
+        const sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
+		
+		connection.query(sql, (err) => {
+			if (err) throw err;
+			console.log(`Barbara: Deducted ${quantity} miles to user: ${discordId} for winning Auction!`);
+			connection.release();
+		});
     });
 }

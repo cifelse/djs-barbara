@@ -1,5 +1,5 @@
 import ms from "ms";
-import { addToBidHistory, checkMiles, updateEndTime } from "../database/auction-db.js";
+import { addAuctionEntry, checkMiles, updateEndTime } from "../database/auction-db.js";
 import { convertDateToTimestamp } from "./date-handler.js";
 
 export const modalHandler = async (client, modal) => {
@@ -98,7 +98,7 @@ export const modalHandler = async (client, modal) => {
 				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
 				await modal.message.edit({ embeds: [embed] });
-				addToBidHistory(auctionId, user.id, bid);
+				addAuctionEntry(auctionId, user.id, bid);
 				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
 			});
 		}
