@@ -1,6 +1,6 @@
 import { MessageActionRow, MessageButton } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways } from '../database/giveaway-db.js';
+import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways, insertGiveawayWinner } from '../database/giveaway-db.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
 import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed } from '../utils/embeds/entertainment-embeds.js';
@@ -89,6 +89,7 @@ export const scheduleGiveaway = async (client, details) => {
 				if (winners.length > 0) {
 					winners.forEach(winner => {
 						winnerString += `<@${winner.discord_id}> `;
+						insertGiveawayWinner(giveaway_id, winner);
 					});
 				}
 				else {
@@ -237,6 +238,7 @@ export const rerollGiveaway = async (interaction) => {
 		if (winners.length > 0) {
 			winners.forEach(winner => {
 				winnerString += `<@${winner.discord_id}> `;
+				insertGiveawayWinner(messageId, winner);
 			});
 		}
 		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);

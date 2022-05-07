@@ -1,6 +1,6 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned } from '../database/lottery-db.js';
+import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned, insertLotteryWinner } from '../database/lottery-db.js';
 import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
@@ -88,6 +88,7 @@ export const scheduleLottery = async (client, details) => {
 				if (winners.length > 0) {
 					winners.forEach(winner => {
 						winnerString += `<@${winner.discord_id}> `;
+						insertLotteryWinner(lottery_id, winner);
 					});
 				}
 				else {
@@ -272,6 +273,7 @@ export const rerollLottery = async (interaction) => {
 		if (winners.length > 0) {
 			winners.forEach(winner => {
 				winnerString += `<@${winner.discord_id}> `;
+				insertLotteryWinner(messageId, winner);
 			});
 		}
 		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);

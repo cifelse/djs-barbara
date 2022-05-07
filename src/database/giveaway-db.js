@@ -123,3 +123,17 @@ export const getEntries = (giveawayId, callback) => {
         });
     });
 }
+
+export const insertGiveawayWinner = (giveawayId, user) => {
+
+    pool.getConnection((err, connection) => {
+        if (err) throw err;
+    
+        const sql = `INSERT INTO giveaway_winners (giveaway_id, discord_id) VALUES ('${giveawayId}', '${user.id}');`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.release();
+        });
+    });
+}

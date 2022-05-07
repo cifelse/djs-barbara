@@ -88,7 +88,7 @@ export const getAuctions = (callback) => {
 
         connection.query(sql, (err, res) => {
             if (err) throw err;
-            con.end();
+            connection.release();
 			callback(res);
         });
     });

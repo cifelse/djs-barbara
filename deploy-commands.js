@@ -11,12 +11,12 @@ for (const file of commandFiles) {
 	commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '9' }).setToken(process.env.SWITCH_TOKEN);
+const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 (async () => {
 	try {
 		console.log('Refreshing application (/) commands');
-		await rest.put(Routes.applicationCommands(process.env.SWITCH_ID), { body: commands });
+		await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
 		console.log('Successfully reloaded application (/) commands.');
 	}
 	catch (error) {

@@ -217,3 +217,17 @@ export const updateMilesBurned = (lotteryId, miles) => {
         });
     });
 }
+
+export const insertLotteryWinner = (lotteryId, user) => {
+
+    pool.getConnection((err, connection) => {
+        if (err) throw err;
+    
+        const sql = `INSERT INTO lottery_winners (lottery_id, discord_id) VALUES ('${lotteryId}', '${user.id}');`;
+    
+        connection.query(sql, (err) => {
+			if (err) throw err;
+			connection.release();
+        });
+    });
+}
