@@ -179,8 +179,8 @@ export const enterLottery = async (interaction) => {
 		const embed = interaction.message.embeds[0];
 		embed.setFooter({ text: ' ' });
 
-		const ffa = lottery.ffa.toString();
-		if (interaction.user.bot || (ffa == '\x00' && !eligibleRole)) {
+		const ffa = lottery.ffa;
+		if (interaction.user.bot || (!ffa && !eligibleRole)) {
 			embed.description = 'You are not eligible to participate in this lottery yet.';
 			await interaction.update({ embeds:[embed], components: [], ephemeral: true });
 			return;

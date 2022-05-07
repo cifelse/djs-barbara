@@ -7,8 +7,8 @@ const { roles: { admin, ram, levels }, channels: { giveaway, lottery, logs: { gi
 export const giveawayEmbed = (interaction, giveawayDetails) => {
 	const giveawayEmbed = new MessageEmbed();
 	const scheduledEndDate = convertTimestampToDate(giveawayDetails.end_date);
-	const ffa = giveawayDetails.ffa.toString();
-	const multiplier = giveawayDetails.multiplier.toString();
+	const ffa = giveawayDetails.ffa;
+	const multiplier = giveawayDetails.multiplier;
 
 	giveawayEmbed.setColor('#80A3FF')
 	.setTitle(giveawayDetails.title)
@@ -19,10 +19,10 @@ export const giveawayEmbed = (interaction, giveawayDetails) => {
 		{ name: '_ _\nWinner/s', value: `${giveawayDetails.num_winners}`, inline: true },
 	);
 
-	if (ffa == 1) giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
+	if (ffa) giveawayEmbed.addField('_ _\nRequirement', 'Free for All');
 	else giveawayEmbed.addField('_ _\nRequirement', `At least be <@&${levels.frequentFlyers}> (Level 10)`);
 
-	if (multiplier == 1) giveawayEmbed.addField('_ _\nMultipliers', `<@&${levels.jetsetters}> + 4\n<@&${levels.businessClass}> + 3\n<@&${levels.premiumEconomy}> + 2`);
+	if (multiplier) giveawayEmbed.addField('_ _\nMultipliers', `<@&${levels.jetsetters}> + 4\n<@&${levels.businessClass}> + 3\n<@&${levels.premiumEconomy}> + 2`);
 	
 	return giveawayEmbed;
 }
@@ -104,7 +104,7 @@ export const editGiveawayLog = async (client, giveaway, message, winners) => {
 export const lotteryEmbed = (interaction, lotteryDetails) => {
 	const lotteryEmbed = new MessageEmbed();
 	const scheduledEndDate = convertTimestampToDate(lotteryDetails.end_date);
-	const ffa = lotteryDetails.ffa.toString();
+	const ffa = lotteryDetails.ffa;
 	lotteryEmbed.setColor('#80A3FF')
 	.setTitle(lotteryDetails.title)
 	.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
@@ -116,7 +116,7 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 		{ name: '_ _\nPrice of a Single Ticket', value: `For this lottery, a single ticket costs **${lotteryDetails.price} MILES.**`, inline: false },
 	);
 
-	if (ffa == 1) lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
+	if (ffa) lotteryEmbed.addField('_ _\nRequirement', 'Free for All');
 	else lotteryEmbed.addField('_ _\nRequirement', `At least be <@&${levels.frequentFlyers}> (Level 10)`);
 	
 	return lotteryEmbed;

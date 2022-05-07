@@ -146,9 +146,10 @@ export const addEntries = async (interaction, roles) => {
 	let multiplier;
 
 	if (roles.get(jetsetters)) multiplier = 4;
-	if (roles.get(businessClass)) multiplier = 3;
-	if (roles.get(premiumEconomy)) multiplier = 2;
-	if (roles.get(frequentFlyers)) multiplier = 1;
+	else if (roles.get(businessClass)) multiplier = 3;
+	else if (roles.get(premiumEconomy)) multiplier = 2;
+	else if (roles.get(frequentFlyers)) multiplier = 1;
+	else multiplier = 1;
 	
 	for (let i = 0; i < multiplier; i++) {
 		insertParticipant(giveawayId, discordId);
