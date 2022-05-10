@@ -1,8 +1,9 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
-import { saveAuction, getAuctions, insertAuctionWinner, getAuctionWinner, payMiles } from '../database/auction-db.js';
+import { saveAuction, getAuctions, insertAuctionWinner, payMiles, getWinners } from '../database/auction-db.js';
 import { auctionEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
+import { updateMilesBurned } from '../database/db.js';
 
 export const startAuction = async (interaction, details, client) => {
 	// Create and Send Message Embed
@@ -42,7 +43,7 @@ export const startAuction = async (interaction, details, client) => {
 export const scheduleAuction = async (client, details) => {
 	// Get Details of Auctions
 	for (let i = 0; i < details.length; i++) {
-		const { auction_id, title, end_date, channel_id } = details[i];
+		const { auction_id, title, num_winners, end_date, channel_id } = details[i];
 
 		const currentDate = new Date().getTime();
 
@@ -66,17 +67,22 @@ export const scheduleAuction = async (client, details) => {
 			message.edit({ embeds: [embed], components: [newRow] });
 
 			// Get Auction and announce winner
-			getAuctionWinner(auction_id, async winner => {
-				// Get Auction and time
-				const deadline = `<t:${Math.floor(Date.now() / 1000) + (360 * 60)}:R>`
-
-				if (!winner) {
+			getWinners(auction_id, num_winners, async winners => {
+				if (!winners[0]) {
 					await channel.send(`Auction for **"${title}"** has ended. Unfortunately, no one bidded in this Auction hence no winners.`);
 					return;
 				}
-				await channel.send(`Auction for **"${title}"** has ended and has been won by <@${winner.discord_id}> with a bid of ${winner.bid} MILES.`);
-				payMiles(winner.discord_id, winner.bid);
-				insertAuctionWinner(auction_id, winner.discord_id, winner.bid);
+				// Put winners in string
+				let winnerString = ''
+
+				winners.forEach(winner => {
+					winnerString += `<@${winner.discord_id}> with a bid of ${winner.bid} MILES`;
+					payMiles(winner.discord_id, winner.bid);
+					updateMilesBurned(winner.bid, 'auction');
+					insertAuctionWinner(auction_id, winner.discord_id, winner.bid);
+				});
+
+				await channel.send(`Auction for **"${title}"** has ended and has been won by <@${winnerString}> with a bid of ${winner.bid} MILES.`);
 			});
 			
 		});

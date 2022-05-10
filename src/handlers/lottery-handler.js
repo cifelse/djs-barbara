@@ -1,9 +1,10 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, updateMilesBurned, insertLotteryWinner } from '../database/lottery-db.js';
+import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, insertLotteryWinner } from '../database/lottery-db.js';
 import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
+import { updateMilesBurned } from '../database/db.js';
 
 const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { lottery, logs: { lotteryLogs } } } = keys.concorde;
 
@@ -220,7 +221,7 @@ export const enterLottery = async (interaction) => {
 				// Accept Entry and Insert to Database
 				insertLotteryEntry(lotteryId, discordId, newFee);
 				updateLotteryEntries(lotteryId);
-				updateMilesBurned(lotteryId, newFee);
+				updateMilesBurned(newFee, 'lottery');
 				await completeBet(interaction);
 			});
 		});

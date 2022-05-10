@@ -1,4 +1,5 @@
 import { MessageActionRow, MessageButton, MessageEmbed } from "discord.js";
+import { getBidHistory } from "../../database/auction-db.js";
 import { convertTimestampToDate } from "../../handlers/date-handler.js";
 import { keys } from "../keys.js";
 const { roles: { admin, ram, levels }, channels: { giveaway, lottery, logs: { giveawayLogs, lotteryLogs } } } = keys.concorde;
@@ -215,4 +216,80 @@ export const auctionEmbed = (details) => {
 		],
 		color: 'f1f10b',
 	};
+}
+
+export const updateAuctionFields = (auctionId, user, bid, endDate) => {
+	let fields;
+
+	// Get Bid History and Put it in a String
+	const bidHistory = getBidHistory(auctionId);
+	let firstFiveHistory, lastFiveHistory;
+
+	// Get First Five
+	bidHistory.forEach((bidder, index) => {
+		const { discord_id, bid } = bidder;
+		if (index === 0) firstFiveHistory += `**<@${discord_id}> - ${bid}**\n`;
+		if (index > 5) return;
+		firstFiveHistory += `<@${discord_id}> - ${bid}\n`;
+	});
+	// Get Last Five
+	bidHistory.forEach((bidder, index) => {
+		const { discord_id, bid } = bidder;
+		if (index < 5) return;
+		lastFiveHistory += `<@${discord_id}> - ${bid}\n`;
+	});
+
+	if (!endDate) {
+		fields = [
+			{
+				name: '_ _\nHighest Bidder',
+				value: `${user}`,
+				inline: true,
+			},
+			{
+				name: '_ _\nBid',
+				value: `${bid} MILES`,
+				inline: true,
+			},
+			{
+				name: '_ _\nLast 10 Bid History',
+				value: `${firstFiveHistory}`,
+				inline: true,
+			},
+			{
+				name: '_ _\n_ _\n',
+				value: `${firstFiveHistory}`,
+				inline: true,
+			},
+		];
+	}
+	fields = [
+		{
+			name: '_ _\nDuration',
+			value: `<t:${Math.floor(endDate.getTime() / 1000)}:R>`,
+			inline: true,
+		},
+		{
+			name: '_ _\nHighest Bidder',
+			value: `${modal.user}`,
+			inline: true,
+		},
+		{
+			name: '_ _\nBid',
+			value: `${bid} MILES`,
+			inline: true,
+		},
+		{
+			name: '_ _\nLast 10 Bid History',
+			value: `${lastFiveHistory}`,
+			inline: true,
+		},
+		{
+			name: '_ _\n_ _\n',
+			value: `${lastFiveHistory}`,
+			inline: true,
+		},
+	];
+
+	return fields;
 }

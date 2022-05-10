@@ -17,6 +17,10 @@ export const data = new SlashCommandBuilder()
 		.setDescription('Enter number of minimum bid.')
 		.setMinValue(200)
 		.setRequired(false))
+	.addIntegerOption(option => option.setName('winners')
+		.setDescription('Enter number of winners.')
+		.setMinValue(1)
+		.setRequired(false))
 	.addStringOption(option => option.setName('duration')
 		.setDescription('Enter duration of auction.')
 		.setRequired(false))
@@ -35,11 +39,13 @@ export const execute = async (interaction, client) => {
 
 	const title = interaction.options.getString('title');
 	let minimum_bid = interaction.options.getInteger('minimum-bid');
+	let winnerCount = interaction.options.getInteger('winners');
 	let duration = interaction.options.getString('duration');
 	let channel_id = interaction.options.getChannel('channel');
 
 	// Set Default Values
 	if (!minimum_bid) minimum_bid = 200;
+	if (!winnerCount) winnerCount = 1;
 	if (!duration) duration = '24h';
 	if (!channel_id) channel_id = keys.concorde.channels.auction;
 	else channel_id = channel_id.id;
@@ -72,7 +78,8 @@ export const execute = async (interaction, client) => {
 		minimum_bid,
 		start_date,
 		end_date,
-		channel_id
+		channel_id,
+		num_winners: winnerCount
 	};
 
 	startAuction(interaction, details, client);

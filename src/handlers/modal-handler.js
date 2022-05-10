@@ -1,5 +1,6 @@
 import ms from "ms";
 import { addAuctionEntry, checkMiles, updateEndTime } from "../database/auction-db.js";
+import { updateAuctionFields } from "../utils/embeds/entertainment-embeds.js";
 import { convertDateToTimestamp } from "./date-handler.js";
 
 export const modalHandler = async (client, modal) => {
@@ -61,38 +62,11 @@ export const modalHandler = async (client, modal) => {
 					updateEndTime(auctionId, timestampEndDate);
 					// Set New Bidder in Embed
 					spliceValue = 0;
-					fields = [
-						{
-							name: '_ _\nDuration',
-							value: `<t:${Math.floor(newEndDate.getTime() / 1000)}:R>`,
-							inline: true,
-						},
-						{
-							name: '_ _\nHighest Bidder',
-							value: `${modal.user}`,
-							inline: true,
-						},
-						{
-							name: '_ _\nBid',
-							value: `${bid} MILES`,
-							inline: true,
-						},
-					];
+					fields = updateAuctionFields(auctionId, user, bid, newEndDate);
 				}
 				else {
 					spliceValue = 1;
-					fields = [
-						{
-							name: '_ _\nHighest Bidder',
-							value: `${modal.user}`,
-							inline: true,
-						},
-						{
-							name: '_ _\nBid',
-							value: `${bid} MILES`,
-							inline: true,
-						},
-					];
+					fields = updateAuctionFields(auctionId, user, bid);
 				}
 
 				// Update Bid Message
