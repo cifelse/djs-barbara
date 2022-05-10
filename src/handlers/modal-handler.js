@@ -71,8 +71,8 @@ export const modalHandler = async (client, modal) => {
 
 				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
-				updateBidHistoryField(auctionId, embed);
-				await modal.message.edit({ embeds: [embed] });
+				let newEmbed = updateBidHistoryField(auctionId, embed);
+				await modal.message.edit({ embeds: [newEmbed] });
 				addAuctionEntry(auctionId, user.id, bid);
 				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
 			});

@@ -13,7 +13,7 @@ export const giveawayEmbed = (interaction, giveawayDetails) => {
 
 	giveawayEmbed.setColor('#80A3FF')
 	.setTitle(giveawayDetails.title)
-	.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
+	.setAuthor({ name: `${interaction.user.tag}`, iconURL: `${interaction.user.displayAvatarURL()}` })
 	.setDescription('You know what it is, **Click** 🍷 **to enter the giveaway!**\n')
 	.addFields(
 		{ name: '_ _\nDuration', value: `<t:${Math.floor(scheduledEndDate.getTime() / 1000)}:R>`, inline: true },
@@ -292,6 +292,6 @@ export const updateBidHistoryField = (auctionId, embed) => {
 		];
 
 		console.log(historyFields);
-		embed.fields.push(historyFields);
+		return embed.fields.push(historyFields);
 	});
 }
