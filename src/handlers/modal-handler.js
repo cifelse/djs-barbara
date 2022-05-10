@@ -46,6 +46,7 @@ export const modalHandler = async (client, modal) => {
 					return;
 				}
 
+				addAuctionEntry(auctionId, user.id, bid);
 				// Get Necessary data for auction
 				const auction = client.auctionSchedules.find(auction => auction.title === embed.title);
 				const endDate = Date.parse(auction.endDate);
@@ -54,7 +55,7 @@ export const modalHandler = async (client, modal) => {
 
 				// Reschedule Bidding if duration is less than or equal 10 minutes
 				if (minutes <= 10) {
-					let newEndDate = new Date(endDate + ms('10m'));
+					let newEndDate = new Date(endDate + ms('10s'));
 					auction.endDate = newEndDate;
 					auction.reschedule(newEndDate);
 					
@@ -71,11 +72,10 @@ export const modalHandler = async (client, modal) => {
 
 				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
-				let newEmbed = updateBidHistoryField(auctionId, embed);
-				console.log(newEmbed);
-				await modal.message.edit({ embeds: [newEmbed] });
-				addAuctionEntry(auctionId, user.id, bid);
-				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
+				updateBidHistoryField(auctionId, embed, async bidEmbed => {
+					await modal.message.edit({ embeds: [bidEmbed] });
+					await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
+				});
 			});
 		}
 		// If the response is invalid

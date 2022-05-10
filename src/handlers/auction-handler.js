@@ -76,13 +76,13 @@ export const scheduleAuction = async (client, details) => {
 				let winnerString = ''
 
 				winners.forEach(winner => {
-					winnerString += `<@${winner.discord_id}> with a bid of ${winner.bid} MILES`;
+					winnerString += `<@${winner.discord_id}> `;
 					payMiles(winner.discord_id, winner.bid);
 					updateMilesBurned(winner.bid, 'auctions');
 					insertAuctionWinner(auction_id, winner.discord_id, winner.bid);
 				});
 
-				await channel.send(`Auction for **"${title}"** has ended and has been won by <@${winnerString}> with a bid of ${winner.bid} MILES.`);
+				await channel.send(`Auction for **"${title}"** has ended and has been won by <@${winnerString}>`);
 			});
 			
 		});

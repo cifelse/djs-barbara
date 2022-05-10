@@ -149,7 +149,7 @@ export const getBidHistory = (auctionId, callback) => {
 	pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `SELECT discord_id, bid FROM auction_entries WHERE auction_id = '${auctionId}' ORDER BY bid LIMIT 10;`;
+        const sql = `SELECT discord_id, bid FROM auction_entries WHERE auction_id = '${auctionId}' LIMIT 10;`;
 		
 		connection.query(sql, (err, res) => {
 			if (err) throw err;
@@ -163,14 +163,7 @@ export const getWinners = (auctionId, numWinners, callback) => {
 	pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `SELECT discord_id, bid
-		FROM (
-			SELECT auction_id, discord_id, bid, ROW_NUMBER() OVER (PARTITION BY discord_id ORDER BY bid DESC) AS rn
-			FROM auction_entries
-		) AS pool
-		WHERE pool.rn = 1 AND pool.auction_id = '${auctionId}'
-		ORDER BY pool.bid DESC
-		LIMIT ${numWinners};`;
+        const sql = `SELECT discord_id, bid FROM (SELECT auction_id, discord_id, bid, ROW_NUMBER() OVER (PARTITION BY discord_id ORDER BY bid DESC) AS rn FROM auction_entries) AS pool WHERE pool.rn = 1 AND pool.auction_id = '${auctionId}' ORDER BY pool.bid DESC LIMIT ${numWinners};`;
 		
 		connection.query(sql, (err, res) => {
 			if (err) throw err;

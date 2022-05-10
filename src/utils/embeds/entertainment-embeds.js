@@ -257,17 +257,18 @@ export const updateAuctionEmbed = (user, bid, endDate) => {
 	return fields;
 };
 
-export const updateBidHistoryField = (auctionId, embed) => {
+export const updateBidHistoryField = (auctionId, embed, callback) => {
 	let historyFields;
 
 	// Get Bid History and Put it in a String
 	getBidHistory(auctionId, bidHistory => {
-		let firstFiveHistory, lastFiveHistory;
+		let firstFiveHistory; 
+		let lastFiveHistory = '';
 
 		// Get First Five
 		bidHistory.forEach((bidder, index) => {
 			const { discord_id, bid } = bidder;
-			if (index === 0) firstFiveHistory += `**<@${discord_id}> - ${bid}**\n`;
+			if (index === 0) firstFiveHistory = `**<@${discord_id}> - ${bid}**\n`;
 			else if (index !== 0 && index <= 5) firstFiveHistory += `<@${discord_id}> - ${bid}\n`;
 			else if (index > 5) lastFiveHistory += `<@${discord_id}> - ${bid}\n`;
 		});
@@ -279,17 +280,17 @@ export const updateBidHistoryField = (auctionId, embed) => {
 				inline: true,
 			},
 		];
+		
+		if (lastFiveHistory !== '') {
+			const lastFiveField = {
+				name: '_ _\n_ _\n',
+				value: `${lastFiveHistory}`,
+				inline: true,
+			};
+			historyFields.push(lastFiveField);
+		}
 
-		if (!lastFiveHistory) return embed.fields.push(historyFields); 
-
-		const lastFiveField = {
-			name: '_ _\n_ _\n',
-			value: `${lastFiveHistory}`,
-			inline: true,
-		};
-
-		historyFields.push(lastFiveField);
-		console.log(embed);
-		return embed.fields.push(historyFields);
+		embed.fields.push(historyFields);
+		callback(embed);
 	});
 }
