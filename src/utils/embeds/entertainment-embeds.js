@@ -268,14 +268,8 @@ export const updateBidHistoryField = (auctionId, embed) => {
 		bidHistory.forEach((bidder, index) => {
 			const { discord_id, bid } = bidder;
 			if (index === 0) firstFiveHistory += `**<@${discord_id}> - ${bid}**\n`;
-			if (index > 5) return;
-			firstFiveHistory += `<@${discord_id}> - ${bid}\n`;
-		});
-		// Get Last Five
-		bidHistory.forEach((bidder, index) => {
-			const { discord_id, bid } = bidder;
-			if (index < 5) return;
-			lastFiveHistory += `<@${discord_id}> - ${bid}\n`;
+			else if (index !== 0 && index <= 5) firstFiveHistory += `<@${discord_id}> - ${bid}\n`;
+			else if (index > 5) lastFiveHistory += `<@${discord_id}> - ${bid}\n`;
 		});
 
 		historyFields = [
@@ -284,14 +278,18 @@ export const updateBidHistoryField = (auctionId, embed) => {
 				value: `${firstFiveHistory}`,
 				inline: true,
 			},
-			{
-				name: '_ _\n_ _\n',
-				value: `${lastFiveHistory}`,
-				inline: true,
-			},
 		];
 
-		console.log(historyFields);
+		if (!lastFiveHistory) return embed.fields.push(historyFields); 
+
+		const lastFiveField = {
+			name: '_ _\n_ _\n',
+			value: `${lastFiveHistory}`,
+			inline: true,
+		};
+
+		historyFields.push(lastFiveField);
+		console.log(embed);
 		return embed.fields.push(historyFields);
 	});
 }
