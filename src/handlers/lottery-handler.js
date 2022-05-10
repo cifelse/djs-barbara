@@ -221,7 +221,7 @@ export const enterLottery = async (interaction) => {
 				// Accept Entry and Insert to Database
 				insertLotteryEntry(lotteryId, discordId, newFee);
 				updateLotteryEntries(lotteryId);
-				updateMilesBurned(newFee, 'lottery');
+				updateMilesBurned(newFee, 'lotteries');
 				await completeBet(interaction);
 			});
 		});
