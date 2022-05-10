@@ -14,7 +14,7 @@ export const saveAuction = (details, callback) => {
     pool.getConnection((err, connection) => {
         if (err) throw err;
     
-        const sql = `INSERT INTO auctions (auction_id, title, minimum_bid, start_date, end_date, channel_id, num_winners) VALUES ('${details.auction_id}', '${details.title}', ${details.minimum_bid}, '${details.start_date}', '${details.end_date}', '${details.channel_id}, ${details.num_winners}');`;
+        const sql = `INSERT INTO auctions (auction_id, title, minimum_bid, start_date, end_date, channel_id, num_winners) VALUES ('${details.auction_id}', '${details.title}', ${details.minimum_bid}, '${details.start_date}', '${details.end_date}', '${details.channel_id}', ${details.num_winners});`;
     
         connection.query(sql, (err) => {
 			if (err) throw err;
@@ -145,13 +145,13 @@ export const payMiles = (discordId, quantity) => {
     });
 };
 
-export const getBidHistory = (auctionId) => {
+export const getBidHistory = (auctionId, callback) => {
 	pool.getConnection((err, connection) => {
         if (err) throw err;
     
         const sql = `SELECT discord_id, bid FROM auction_entries WHERE auction_id = '${auctionId}' ORDER BY bid LIMIT 10;`;
 		
-		connection.query(sql, (err) => {
+		connection.query(sql, (err, res) => {
 			if (err) throw err;
 			connection.release();
 			callback(res);

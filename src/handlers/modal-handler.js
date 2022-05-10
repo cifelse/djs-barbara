@@ -1,6 +1,6 @@
 import ms from "ms";
 import { addAuctionEntry, checkMiles, updateEndTime } from "../database/auction-db.js";
-import { updateAuctionFields } from "../utils/embeds/entertainment-embeds.js";
+import { updateAuctionEmbed, updateBidHistoryField } from "../utils/embeds/entertainment-embeds.js";
 import { convertDateToTimestamp } from "./date-handler.js";
 
 export const modalHandler = async (client, modal) => {
@@ -62,15 +62,16 @@ export const modalHandler = async (client, modal) => {
 					updateEndTime(auctionId, timestampEndDate);
 					// Set New Bidder in Embed
 					spliceValue = 0;
-					fields = updateAuctionFields(auctionId, user, bid, newEndDate);
+					fields = updateAuctionEmbed(user, bid, newEndDate);
 				}
 				else {
 					spliceValue = 1;
-					fields = updateAuctionFields(auctionId, user, bid);
+					fields = updateAuctionEmbed(user, bid);
 				}
 
 				// Update Bid Message
 				embed.fields.splice(spliceValue, embed.fields.length, fields);
+				updateBidHistoryField(auctionId, embed);
 				await modal.message.edit({ embeds: [embed] });
 				addAuctionEntry(auctionId, user.id, bid);
 				await modal.followUp({ content: `You have successfully bidded ${bid} MILES.`, ephemeral: true });
