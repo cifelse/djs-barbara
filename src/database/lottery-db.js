@@ -121,11 +121,6 @@ export const checkExisting = (discordId, callback) => {
         
 		connection.query(sql, (err, res) => {
 			if (err) throw err;
-			if (!res[0]) {
-				connection.release();
-				callback(res);
-				return;
-			}
 			connection.release();
 			callback(res);
 		});
@@ -200,20 +195,6 @@ export const getStrictMode = (lotteryId, callback) => {
 			if (err) throw err;
 			connection.release();
             callback(result[0]);
-        });
-    });
-}
-
-export const updateMilesBurned = (lotteryId, miles) => {
-    pool.getConnection((err, connection) => {
-        if (err) throw err;
-    
-        const sql = `UPDATE lotteries SET miles_burned = miles_burned + ${miles} WHERE lottery_id = '${lotteryId}';`;
-		
-        connection.query(sql, (err) => {
-			if (err) throw err;
-			console.log(`Barbara: Added ${miles} to miles burned in lottery table!`);
-			connection.release();
         });
     });
 }

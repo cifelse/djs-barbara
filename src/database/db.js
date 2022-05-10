@@ -9,16 +9,13 @@ const pool = createPool({
 	database: process.env.DB
 });
 
-export const burnMiles = (type, quantity) => {
-
+export const updateMilesBurned = (quantity, type) => {
     pool.getConnection((err, connection) => {
         if (err) throw err;
-    
-        const sql = `UPDATE miles_burned SET ${type} = ${type} + ${quantity} WHERE id = (SELECT MAX(id) FROM miles_burned)`;
-    
+        let sql = `UPDATE miles_burned SET ${type} = ${type} + ${quantity} WHERE id = (SELECT MAX(id) FROM miles_burned)`;
         connection.query(sql, (err) => {
-			if (err) throw err;
-			connection.release();
+            if (err) throw err;
+            connection.end();
         });
-    });
-}
+    })
+};
