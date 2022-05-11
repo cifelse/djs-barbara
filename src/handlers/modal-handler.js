@@ -47,6 +47,7 @@ export const modalHandler = async (client, modal) => {
 				}
 
 				addAuctionEntry(auctionId, user.id, bid);
+				
 				// Get Necessary data for auction
 				const auction = client.auctionSchedules.find(auction => auction.title === embed.title);
 				const endDate = Date.parse(auction.endDate);

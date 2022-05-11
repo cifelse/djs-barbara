@@ -3,7 +3,7 @@ import { scheduleJob } from 'node-schedule';
 import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways, insertGiveawayWinner } from '../database/giveaway-db.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
-import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed, giveawayLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
 
 // Get Necessary Keys
 const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { giveaway, logs: { giveawayLogs } } } = keys.concorde;
@@ -34,15 +34,9 @@ export const startGiveaway = async (interaction, details, client) => {
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
 
 	// Edit embed and send to Giveaway Logs
-	embed.setDescription(`A giveaway has started. Go to this giveaway by [clicking here.](${message.url})`);
-	embed.addField('_ _\nChannel', `<#${details.channel_id}>`);
-	embed.setFooter({ text: `${details.giveaway_id}` });
-	embed.setTimestamp();
-	embed.fields.forEach(field => {
-		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
-	});
+	const logsEmbed = giveawayLogsEmbed(embed, details);
 	const logsChannel = interaction.guild.channels.cache.get(giveawayLogs);
-	await logsChannel.send({ embeds: [embed] });
+	await logsChannel.send({ embeds: [logsEmbed] });
 }
 
 export const scheduleGiveaway = async (client, details) => {
@@ -145,6 +139,7 @@ export const addEntries = async (interaction, roles) => {
 
 	let multiplier;
 
+	// Set Multiplier
 	if (roles.get(jetsetters)) multiplier = 4;
 	else if (roles.get(businessClass)) multiplier = 3;
 	else if (roles.get(premiumEconomy)) multiplier = 2;
@@ -208,11 +203,14 @@ export const rerollGiveaway = async (interaction) => {
 		return;
 	}
 
+	// Get Necessary Details
 	const messageId	= interaction.message.embeds[0].footer.text;
 	const title = interaction.message.embeds[0].title;
 	const fields = interaction.message.embeds[0].fields;
 	
 	await interaction.reply({ content: `Enter number of winners for Reroll on **"${title}"**.`, ephemeral: true });
+	
+	// Get Number of Winners From Message
 	const response = await interaction.channel.awaitMessages({ max: 1 });
 	const { content } = response.first();
 	const numberChecker = /^\d+$/;
@@ -222,6 +220,7 @@ export const rerollGiveaway = async (interaction) => {
 		return;
 	}
 
+	// Get Channel Where The Giveaway was hosted
 	let channel;
 	fields.forEach(async field => {
 		if (field.name === '_ _\nChannel') {
@@ -233,17 +232,20 @@ export const rerollGiveaway = async (interaction) => {
 
 	getParticipants(messageId, async users => {
 		const winners = determineWinners(users, winnerCount);
-		// Put winners in string
-		let winnerString = '';
 
+		// Put winners in string and insert to Database
+		let winnerString = '';
 		if (winners.length > 0) {
 			winners.forEach(winner => {
 				winnerString += `<@${winner.discord_id}> `;
 				insertGiveawayWinner(messageId, winner);
 			});
 		}
+
+		// Send Reroll Message with Winners
 		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
 		await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this giveaway.*`);
+		
 		// Delete Response After Sending New Winners
 		response.first().delete();
 	});

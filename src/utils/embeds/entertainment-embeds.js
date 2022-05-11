@@ -28,6 +28,18 @@ export const giveawayEmbed = (interaction, giveawayDetails) => {
 	return giveawayEmbed;
 }
 
+export const giveawayLogsEmbed = (embed, giveawayDetails) => {
+	embed.setDescription(`A giveaway has started. Go to this giveaway by [clicking here.](${message.url})`);
+	embed.addField('_ _\nChannel', `<#${giveawayDetails.channel_id}>`);
+	embed.setFooter({ text: `${giveawayDetails.giveaway_id}` });
+	embed.setTimestamp();
+	embed.fields.forEach(field => {
+		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
+	});
+
+	return embed;
+}
+
 export const announceGiveawayWinners = async (channel, message, winners, title) => {
 	// Edit Embed of Giveaway Message
 	const editedEmbed = message.embeds[0];
@@ -45,6 +57,7 @@ export const announceGiveawayWinners = async (channel, message, winners, title) 
 		await message.edit({ embeds:[editedEmbed], components: [] });
 		return;
 	}
+
 	editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
 	const disabledButton = message.components[0].components[0];
 	disabledButton.setDisabled(true);
@@ -95,6 +108,7 @@ export const editGiveawayLog = async (client, giveaway, message, winners) => {
 	if (winners === 'None') {
 		rerollButton.setDisabled(true);
 	}
+
 	// If there are winners
 	const newRow = new MessageActionRow();
 	newRow.addComponents(rerollButton);
@@ -108,7 +122,7 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 	const ffa = lotteryDetails.ffa;
 	lotteryEmbed.setColor('#80A3FF')
 	.setTitle(lotteryDetails.title)
-	.setAuthor({ name: `${interaction.user.username}#${interaction.user.discriminator}`, iconURL: `${interaction.user.displayAvatarURL()}` })
+	.setAuthor({ name: `${interaction.user.tag}`, iconURL: `${interaction.user.displayAvatarURL()}` })
 	.setDescription('**You can now use your MILES to enter the lotteries in Concorde!** Unlike the Auctions, everyone is able to win the Whitelist Spots fairly.\n\n **Click 🎫 to enter the lottery!**')
 	.addFields(
 		{ name: '_ _\nDuration', value: `<t:${Math.floor(scheduledEndDate.getTime() / 1000)}:R>`, inline: true },
@@ -123,6 +137,18 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 	return lotteryEmbed;
 }
 
+export const lotteryLogsEmbed = (embed, lotteryDetails) => {
+	embed.setDescription(`A lottery has started. Go to this lottery by [clicking here.](${message.url})`);
+	embed.addField('_ _\nChannel', `<#${lotteryDetails.channel_id}>`);
+	embed.setFooter({ text: `${lotteryDetails.lottery_id}` });
+	embed.setTimestamp();
+	embed.fields.forEach(field => {
+		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
+	});
+
+	return embed;
+};
+
 export const announceLotteryWinners = async (channel, message, winners, title) => {
 	// Edit Embed of Lottery Message
 	const editedEmbed = message.embeds[0];
@@ -134,12 +160,13 @@ export const announceLotteryWinners = async (channel, message, winners, title) =
 		{ name: '_ _\nWinner/s', value: `${winners}`, inline: true },
 	]);
 
-	// Announce Winners
+	// Edit Description, Disable Button and Announce Winners
 	if (winners === 'None') {
 		editedEmbed.setDescription('**Lottery has ended.** Sadly, no one joined the lottery so no one won. 😢');
 		message.edit({ embeds:[editedEmbed], components: [] });
 		return;
 	}
+
 	editedEmbed.setDescription('Oh honey, I would like to extend but we need to end at some point. **Congratulations to the winner/s!** 🎉 Make sure to register a passport over at <#915156513339891722> or else I\'ll have to disqualify you. 😉');
 	const disabledButton = message.components[0].components[0];
 	disabledButton.setDisabled(true);
@@ -190,6 +217,7 @@ export const editLotteryLog = async (client, lottery, message, winners) => {
 	if (winners === 'None') {
 		rerollButton.setDisabled(true);
 	}
+
 	// If there are winners
 	const newRow = new MessageActionRow();
 	newRow.addComponents(rerollButton);
@@ -217,6 +245,16 @@ export const auctionEmbed = (details) => {
 		color: 'f1f10b',
 	};
 }
+
+export const auctionLogsEmbed = (embed, auctionDetails) => {
+	embed.description = `An auction has started. Go to this auction by [clicking here.](${message.url})`;
+	embed.footer = { text: `${auctionDetails.auction_id}` };
+	embed.timestamp = new Date();
+	embed.fields.forEach(field => {
+		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
+	});
+	embed.fields.splice(2, 4);
+};
 
 export const updateAuctionEmbed = (user, bid, endDate) => {
 	let fields;
@@ -275,7 +313,7 @@ export const updateBidHistoryField = (auctionId, embed, callback) => {
 
 		historyFields = [
 			{
-				name: '_ _\nLast 10 Bid History',
+				name: '_ _\nBid History',
 				value: `${firstFiveHistory}`,
 				inline: true,
 			},

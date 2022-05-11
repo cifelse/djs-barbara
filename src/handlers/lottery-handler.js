@@ -1,7 +1,7 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
 import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, insertLotteryWinner } from '../database/lottery-db.js';
-import { announceLotteryWinners, editLotteryLog, lotteryEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { announceLotteryWinners, editLotteryLog, lotteryEmbed, lotteryLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
 import { updateMilesBurned } from '../database/db.js';
@@ -33,15 +33,9 @@ export const startLottery = async (interaction, details, client) => {
 	await interaction.reply({ content: `Lottery successfully launched for **"${details.title}"**!` });
 
 	// Edit embed and send to Lottery Logs
-	embed.setDescription(`A lottery has started. Go to this lottery by [clicking here.](${message.url})`);
-	embed.addField('_ _\nChannel', `<#${details.channel_id}>`);
-	embed.setFooter({ text: `${details.lottery_id}` });
-	embed.setTimestamp();
-	embed.fields.forEach(field => {
-		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
-	});
+	const logsEmbed = lotteryLogsEmbed(embed, details);
 	const logsChannel = interaction.guild.channels.cache.get(lotteryLogs);
-	await logsChannel.send({ embeds: [embed] });
+	await logsChannel.send({ embeds: [logsEmbed] });
 }
 
 export const scheduleLottery = async (client, details) => {
@@ -180,6 +174,7 @@ export const enterLottery = async (interaction) => {
 		const embed = interaction.message.embeds[0];
 		embed.setFooter({ text: ' ' });
 
+		// Check if the Lottery is Free For All 
 		const ffa = lottery.ffa;
 		if (interaction.user.bot || (!ffa && !eligibleRole)) {
 			embed.description = 'You are not eligible to participate in this lottery yet.';
@@ -229,6 +224,7 @@ export const enterLottery = async (interaction) => {
 }
 
 export const completeBet = async (interaction) => {
+	// Get and edit Embed
 	const embed = interaction.message.embeds[0];
 	const fragments = embed.description.split("**");
 	embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉`;
@@ -268,17 +264,20 @@ export const rerollLottery = async (interaction) => {
 
 	getGamblers(messageId, async users => {
 		const winners = determineWinners(users, winnerCount);
-		// Put winners in string
-		let winnerString = '';
 
+		// Put winners in string and insert to Database
+		let winnerString = '';
 		if (winners.length > 0) {
 			winners.forEach(winner => {
 				winnerString += `<@${winner.discord_id}> `;
 				insertLotteryWinner(messageId, winner);
 			});
 		}
+
+		// Send Reroll Message with Winners
 		await interaction.channel.send(`A Reroll has been requested by <@${interaction.user.id}> on **"${title}"**`);
 		await channel.send(`A Reroll has been requested by <@${interaction.user.id}>. Congratulations to the new winners, ${winnerString}for winning **"${title}"** 🎉\n\n**Important Note:**\nMake sure to register a passport. Just in case you haven't, you can do that at <#915156513339891722>. *Failure to do so will disqualify you from this lottery.*`);
+		
 		// Delete Response After Sending New Winners
 		response.first().delete();
 	});

@@ -1,6 +1,6 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { saveAuction, getAuctions, insertAuctionWinner, payMiles, getWinners } from '../database/auction-db.js';
-import { auctionEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { auctionEmbed, auctionLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
 import { updateMilesBurned } from '../database/db.js';
@@ -29,15 +29,9 @@ export const startAuction = async (interaction, details, client) => {
 	});
 
 	// Edit embed and send to Auction Logs
-	embed.description = `An auction has started. Go to this auction by [clicking here.](${message.url})`;
-	embed.footer = { text: `${details.auction_id}` };
-	embed.timestamp = new Date();
-	embed.fields.forEach(field => {
-		if (field.name === '_ _\nDuration') field.name = '_ _\nTime';
-	});
-	embed.fields.splice(2, 4);
+	const logsEmbed = auctionLogsEmbed(embed, details);
 	const logsChannel = interaction.guild.channels.cache.get(keys.concorde.channels.logs.auctionLogs);
-	await logsChannel.send({ embeds: [embed] });
+	await logsChannel.send({ embeds: [logsEmbed] });
 }
 
 export const scheduleAuction = async (client, details) => {
@@ -82,7 +76,7 @@ export const scheduleAuction = async (client, details) => {
 					insertAuctionWinner(auction_id, winner.discord_id, winner.bid);
 				});
 
-				await channel.send(`Auction for **"${title}"** has ended and has been won by <@${winnerString}>`);
+				await channel.send(`Auction for **"${title}"** has ended and has been won by ${winnerString}.`);
 			});
 			
 		});

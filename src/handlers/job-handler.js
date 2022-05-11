@@ -13,6 +13,7 @@ export const startJobs = (guild) => {
 		gmChannel.send('GM GN, Why don\'t you all hang with me at the <#929794847198564354>?');
 	}).start();
 
+	// Reroll Button Disabler
 	new CronJob('0 */30 * * * *', async () => {
 		const giveawayLogs = guild.channels.cache.get(channels.logs.giveawayLogs);
 		if (!giveawayLogs) return;
@@ -30,7 +31,9 @@ export const startJobs = (guild) => {
 			// Disable button if 1 hour has passed of end date
 			const endTime = embed.timestamp + ms('1d');
 			const currentTime = new Date().getTime();
+
 			if (currentTime <= endTime) return;
+			
 			button.setDisabled(true);
 			const disabledRow = new MessageActionRow();
 			disabledRow.addComponents(button);
