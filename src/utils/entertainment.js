@@ -1,5 +1,9 @@
 import { getParticipants, insertGiveawayWinner } from "../database/giveaway-db.js";
 import { getGamblers, insertLotteryWinner } from "../database/lottery-db.js";
+import { keys } from "./keys.js";
+
+const { roles: { admin: { crew, captain }, ram: { engineers } } } = keys.concorde;
+
 
 export const determineWinners = (users, winnerCount) => {
     const numWinners = parseInt(winnerCount);
@@ -34,7 +38,7 @@ export const determineWinners = (users, winnerCount) => {
 
 export const rerollWinners = async (interaction, type) => {
 	// Check Role
-	const eligible = interaction.member.roles.cache.hasAny(admin.captain, admin.crew, ram.engineers, keys.hangar.roles.engineers);
+	const eligible = interaction.member.roles.cache.hasAny(captain, crew, engineers, keys.hangar.roles.engineers);
 	if (!eligible) {
 		await interaction.reply({ content: 'You are not eligible to use this button', ephemeral: true });
 		return;
