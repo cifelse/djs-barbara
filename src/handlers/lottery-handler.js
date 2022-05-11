@@ -229,11 +229,10 @@ export const completeBet = async (interaction) => {
 	const discordId = interaction.user.id;
 	const embed = interaction.message.embeds[0];
 	const fragments = embed.description.split("**");
-	embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉`;
 	
 	// Get Balance after Betting
 	checkMiles(discordId, async user => {
-		embed.addField('Current Balance', `${user.miles} MILES`, true);
+		embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉\n**Current Balance: ${user.miles} MILES**`;
 		embed.setFooter({ text: ' ' });
 		await interaction.update({ embeds: [embed], components:[] });
 	});
