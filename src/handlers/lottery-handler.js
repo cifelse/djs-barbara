@@ -5,6 +5,7 @@ import { announceLotteryWinners, editLotteryLog, lotteryEmbed, lotteryLogsEmbed 
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
 import { updateMilesBurned } from '../database/db.js';
+import { checkMiles } from '../database/auction-db.js';
 
 const { roles: { admin, ram, levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { lottery, logs: { lotteryLogs } } } = keys.concorde;
 
@@ -33,7 +34,7 @@ export const startLottery = async (interaction, details, client) => {
 	await interaction.reply({ content: `Lottery successfully launched for **"${details.title}"**!` });
 
 	// Edit embed and send to Lottery Logs
-	const logsEmbed = lotteryLogsEmbed(embed, details);
+	const logsEmbed = lotteryLogsEmbed(embed, message, details);
 	const logsChannel = interaction.guild.channels.cache.get(lotteryLogs);
 	await logsChannel.send({ embeds: [logsEmbed] });
 }
@@ -225,11 +226,18 @@ export const enterLottery = async (interaction) => {
 
 export const completeBet = async (interaction) => {
 	// Get and edit Embed
+	const discordId = interaction.user.id;
 	const embed = interaction.message.embeds[0];
 	const fragments = embed.description.split("**");
 	embed.description = `You have successfully purchased a lottery ticket for **${fragments[1]}** for **${fragments[3]}!** 🎉`;
-	embed.setFooter({ text: ' ' });
-	await interaction.update({ embeds: [embed], components:[] });
+	
+	// Get Balance after Betting
+	checkMiles(discordId, async user => {
+		embed.addField('Current Balance', `${user.miles} MILES`, true);
+		embed.setFooter({ text: ' ' });
+		await interaction.update({ embeds: [embed], components:[] });
+	});
+	
 }
 
 export const rerollLottery = async (interaction) => {
