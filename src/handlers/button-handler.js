@@ -1,7 +1,8 @@
 import { presentQueue } from '../utils/player/queue-system.js';
-import { enterGiveaway, rerollWinners } from './giveaway-handler.js';
-import { confirmBet, enterLottery, rerollLottery } from './lottery-handler.js';
+import { enterGiveaway } from './giveaway-handler.js';
+import { confirmBet, enterLottery } from './lottery-handler.js';
 import discordModals from 'discord-modals';
+import { rerollWinners } from '../utils/entertainment.js';
 
 const { Modal, TextInputComponent, showModal } = discordModals;
 
