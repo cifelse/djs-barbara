@@ -15,7 +15,7 @@ export const updateMilesBurned = (quantity, type) => {
         let sql = `UPDATE miles_burned SET ${type} = ${type} + ${quantity} WHERE id = (SELECT MAX(id) FROM miles_burned)`;
         connection.query(sql, (err) => {
             if (err) throw err;
-            connection.end();
+            connection.release();
         });
     })
 };
