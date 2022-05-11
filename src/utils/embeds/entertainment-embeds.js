@@ -28,8 +28,8 @@ export const giveawayEmbed = (interaction, giveawayDetails) => {
 	return giveawayEmbed;
 }
 
-export const giveawayLogsEmbed = (embed, giveawayDetails) => {
-	embed.setDescription(`A giveaway has started. Go to this giveaway by [clicking here.](${message.url})`);
+export const giveawayLogsEmbed = (embed, giveawayMessage, giveawayDetails) => {
+	embed.setDescription(`A giveaway has started. Go to this giveaway by [clicking here.](${giveawayMessage.url})`);
 	embed.addField('_ _\nChannel', `<#${giveawayDetails.channel_id}>`);
 	embed.setFooter({ text: `${giveawayDetails.giveaway_id}` });
 	embed.setTimestamp();
@@ -137,8 +137,8 @@ export const lotteryEmbed = (interaction, lotteryDetails) => {
 	return lotteryEmbed;
 }
 
-export const lotteryLogsEmbed = (embed, lotteryDetails) => {
-	embed.setDescription(`A lottery has started. Go to this lottery by [clicking here.](${message.url})`);
+export const lotteryLogsEmbed = (embed, lotteryMessage, lotteryDetails) => {
+	embed.setDescription(`A lottery has started. Go to this lottery by [clicking here.](${lotteryMessage.url})`);
 	embed.addField('_ _\nChannel', `<#${lotteryDetails.channel_id}>`);
 	embed.setFooter({ text: `${lotteryDetails.lottery_id}` });
 	embed.setTimestamp();

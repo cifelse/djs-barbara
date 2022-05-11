@@ -34,7 +34,7 @@ export const startGiveaway = async (interaction, details, client) => {
 	await interaction.reply({ content: `Giveaway successfully launched for **"${details.title}"**!` });
 
 	// Edit embed and send to Giveaway Logs
-	const logsEmbed = giveawayLogsEmbed(embed, details);
+	const logsEmbed = giveawayLogsEmbed(embed, message, details);
 	const logsChannel = interaction.guild.channels.cache.get(giveawayLogs);
 	await logsChannel.send({ embeds: [logsEmbed] });
 }
