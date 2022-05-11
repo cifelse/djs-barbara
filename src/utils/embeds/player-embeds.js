@@ -1,5 +1,6 @@
 import { search } from 'play-dl';
 import { hexColor } from '../hex-values.js';
+import { commands } from '../player/help-description.js';
 
 export const play = async (embed, song) => {
 	embed.setColor(hexColor.default);
@@ -142,17 +143,11 @@ export const removeSong = (embed, song) => {
 export const help = (embed) => {
 	embed.setColor(hexColor.help);
 	embed.setTitle('Commands');
-	embed.setDescription(`\`/play\`: Play a song in a voice channel.
-\`/shuffle\`: Shuffles the queue.
-\`/resume\`: Resumes the music.
-\`/pause\`: Pauses song from playing.
-\`/skip\`: Skips current track.
-\`/stop\`: Stops the queue.
-\`/disconnect\`: Disconnects from the voice channel.
-\`/np\`: Show currently playing song.
-\`/loop\`: Loops the queue.
-\`/remove\`: Removes a song from queue.
-	`);
+	let helpDescription = '';
+	for (const command in commands) {
+		helpDescription += `${commands[command].command}: ${commands[command].description}`;
+	}
+	embed.setDescription(`${helpDescription}`);
 }
 
 export const unviewable = (embed) => {
