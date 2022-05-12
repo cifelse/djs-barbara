@@ -5,7 +5,7 @@ import { startAuction } from '../handlers/auction-handler.js';
 import ms from 'ms';
 import { keys } from '../utils/keys.js';
 
-const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
+const { roles: { admin: { captain, crew }, ram: { engineers } }, channels: { auction } } = keys.concorde;
 
 export const data = new SlashCommandBuilder()
 	.setName('auction')
@@ -47,7 +47,7 @@ export const execute = async (interaction, client) => {
 	if (!minimum_bid) minimum_bid = 200;
 	if (!winnerCount) winnerCount = 1;
 	if (!duration) duration = '24h';
-	if (!channel_id) channel_id = keys.concorde.channels.auction;
+	if (!channel_id) channel_id = auction;
 	else channel_id = channel_id.id;
 
 	// Check for valid Duration

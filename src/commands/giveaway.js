@@ -5,7 +5,7 @@ import { convertDateToTimestamp } from '../handlers/date-handler.js';
 import { startGiveaway } from '../handlers/giveaway-handler.js';
 import { keys } from '../utils/keys.js';
 
-const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
+const { roles: { admin: { captain, crew }, ram: { engineers } }, channels: { giveaway } } = keys.concorde;
 
 export const data = new SlashCommandBuilder()
 	.setName('giveaway')
@@ -51,7 +51,7 @@ export const execute = async (interaction, client) => {
 	if (!duration) duration = '24h';
 	if (!multiplier) multiplier = false;
 	if (!ffa) ffa = false;
-	if (!channelId) channelId = keys.concorde.channels.giveaway;
+	if (!channelId) channelId = giveaway;
 	else channelId = channelId.id;
 
 	// Check for valid Duration

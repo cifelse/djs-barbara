@@ -5,7 +5,7 @@ import ms from 'ms';
 import { keys } from '../utils/keys.js';
 import { startLottery } from '../handlers/lottery-handler.js';
 
-const { roles: { admin: { captain, crew }, ram: { engineers } } } = keys.concorde;
+const { roles: { admin: { captain, crew }, ram: { engineers } }, channels: { lottery } } = keys.concorde;
 
 export const data = new SlashCommandBuilder()
 	.setName('lottery')
@@ -59,7 +59,7 @@ export const execute = async (interaction, client) => {
 	if (!price) price = 50;
 	if (!max_tickets) max_tickets = 1;
 	if (!ffa) ffa = false;
-	if (!channelId) channelId = keys.concorde.channels.lottery;
+	if (!channelId) channelId = lottery;
 	else channelId = channelId.id;
 
 	// Check for valid Duration
