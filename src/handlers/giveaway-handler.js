@@ -3,7 +3,7 @@ import { scheduleJob } from 'node-schedule';
 import { saveGiveaway, getParticipants, insertParticipant, checkDuplicateParticipant, getEntries, updateEntries, getGiveaways, insertGiveawayWinner } from '../database/giveaway-db.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
-import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed, giveawayLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { announceGiveawayWinners, editGiveawayLog, giveawayEmbed, giveawayLogsEmbed } from '../utils/embeds/giveaway-embeds.js';
 import { determineWinners } from '../utils/entertainment.js';
 
 // Get Necessary Keys

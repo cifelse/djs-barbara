@@ -3,23 +3,23 @@ import { MessageActionRow } from "discord.js";
 import ms from "ms";
 import { keys } from "../utils/keys.js";
 
-const { channels } = keys.concorde;
+const { channels: { gm, logs: { giveawayLogs } } } = keys.concorde;
 
 export const startJobs = (guild) => {
 	// Schedule GM Message
 	new CronJob('0 0 11/22 * * *', () => {
-		const gmChannel = guild.channels.cache.get(channels.gm);
+		const gmChannel = guild.channels.cache.get(gm);
 		if (!gmChannel) return;
 		gmChannel.send('GM GN, Why don\'t you all hang with me at the <#929794847198564354>?');
 	}).start();
 
 	// Reroll Button Disabler
 	new CronJob('0 */30 * * * *', async () => {
-		const giveawayLogs = guild.channels.cache.get(channels.logs.giveawayLogs);
-		if (!giveawayLogs) return;
+		const giveawayLogsChannel = guild.channels.cache.get(giveawayLogs);
+		if (!giveawayLogsChannel) return;
 
 		// Check Messages for Reroll Buttons
-		const fetchedMessages = await giveawayLogs.messages.fetch({ limit: 100 });
+		const fetchedMessages = await giveawayLogsChannel.messages.fetch({ limit: 100 });
 		fetchedMessages.forEach(async message => {
 			// Get embeds and buttons
 			const embed = message.embeds[0];

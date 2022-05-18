@@ -1,10 +1,8 @@
 import { presentQueue } from '../utils/player/queue-system.js';
 import { enterGiveaway } from './giveaway-handler.js';
 import { confirmBet, enterLottery } from './lottery-handler.js';
-import discordModals from 'discord-modals';
+import { inputBid } from './auction-handler.js';
 import { rerollWinners } from '../utils/entertainment.js';
-
-const { Modal, TextInputComponent, showModal } = discordModals;
 
 export const buttonHandler = async (interaction, client) => {
 	if (interaction.customId === 'first' || interaction.customId === 'back' || interaction.customId === 'next' || interaction.customId === 'last') {
@@ -26,21 +24,7 @@ export const buttonHandler = async (interaction, client) => {
 	}
 
 	if (interaction.customId === 'bid') {
-		const modal = new Modal()
-			.setCustomId('bid')
-			.setTitle('Welcome to the Auction')
-			.addComponents([
-			new TextInputComponent()
-				.setCustomId('bid-input')
-				.setLabel('Enter MILES')
-				.setStyle('SHORT')
-				.setMinLength(1)
-				.setMaxLength(5)
-				.setPlaceholder('Enter amount here')
-				.setRequired(true),
-			]);
-
-		showModal(modal, { client, interaction });
+		inputBid(client, interaction);
 	}
 
 	if (interaction.customId === 'bet') {

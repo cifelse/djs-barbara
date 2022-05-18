@@ -1,9 +1,14 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { saveAuction, getAuctions, insertAuctionWinner, payMiles, getWinners } from '../database/auction-db.js';
-import { auctionEmbed, auctionLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { auctionEmbed, auctionLogsEmbed } from '../utils/embeds/auction-embeds.js';
 import { scheduleJob } from 'node-schedule';
 import { keys } from '../utils/keys.js';
-import { updateMilesBurned } from '../database/db.js';
+import { updateMilesBurned } from '../database/miles-db.js';
+import discordModals from 'discord-modals';
+
+const { Modal, TextInputComponent, showModal } = discordModals;
+
+const { logs: { auctionLogs } } = keys.concorde.channels;
 
 export const startAuction = async (interaction, details, client) => {
 	// Create and Send Message Embed
@@ -29,8 +34,8 @@ export const startAuction = async (interaction, details, client) => {
 	});
 
 	// Edit embed and send to Auction Logs
-	const logsEmbed = auctionLogsEmbed(embed, details);
-	const logsChannel = interaction.guild.channels.cache.get(keys.concorde.channels.logs.auctionLogs);
+	const logsEmbed = auctionLogsEmbed(embed, message, details);
+	const logsChannel = interaction.guild.channels.cache.get(auctionLogs);
 	await logsChannel.send({ embeds: [logsEmbed] });
 }
 
@@ -86,4 +91,21 @@ export const scheduleAuction = async (client, details) => {
 		schedule.endDate = end_date;
 		client.auctionSchedules.push(schedule);
 	}
+}
+
+export const inputBid = (client, interaction) => {
+	const modal = new Modal()
+			.setCustomId('submit-bid')
+			.setTitle('Welcome to the Auction')
+			.addComponents([
+			new TextInputComponent()
+				.setCustomId('bid-input')
+				.setLabel('Enter MILES')
+				.setStyle('SHORT')
+				.setMinLength(1)
+				.setMaxLength(5)
+				.setPlaceholder('Enter amount here')
+				.setRequired(true),
+			]);
+	showModal(modal, { client, interaction });
 }

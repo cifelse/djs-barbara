@@ -1,11 +1,10 @@
 import { MessageButton, MessageActionRow } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, removeMiles, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, insertLotteryWinner } from '../database/lottery-db.js';
-import { announceLotteryWinners, editLotteryLog, lotteryEmbed, lotteryLogsEmbed } from '../utils/embeds/entertainment-embeds.js';
+import { saveLottery, getLotteryEntries, getGamblers, updateLotteryEntries, checkMaxTicketsAndEntries, getDataForBet, getStrictMode, insertLotteryEntry, getLotteries, insertLotteryWinner } from '../database/lottery-db.js';
+import { announceLotteryWinners, editLotteryLog, lotteryEmbed, lotteryLogsEmbed } from '../utils/embeds/lottery-embeds.js';
 import { CronJob } from 'cron';
 import { keys } from '../utils/keys.js';
-import { updateMilesBurned } from '../database/db.js';
-import { checkMiles } from '../database/auction-db.js';
+import { updateMilesBurned, checkMiles, removeMiles } from '../database/miles-db.js';
 import { determineWinners } from '../utils/entertainment.js';
 
 const { roles: { levels: { frequentFlyers, premiumEconomy, businessClass, jetsetters } }, channels: { logs: { lotteryLogs } } } = keys.concorde;
