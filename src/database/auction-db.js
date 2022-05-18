@@ -6,7 +6,8 @@ const pool = createPool({
 	host: process.env.HOST,
 	user: process.env.USERNAME,
 	password: process.env.PW,
-	database: process.env.DB
+	database: process.env.DB,
+	timezone: 'Z',
 });
 
 // CREATING AN AUCTION AND SAVING IT TO DATABASE
@@ -22,41 +23,6 @@ export const saveAuction = (details, callback) => {
 			connection.release();
 			callback();
         });
-    });
-};
-
-export const checkExisting = (discordId, callback) => {
-
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-    
-		const sql = `SELECT * FROM miles WHERE discord_id = "${discordId}"`;
-        
-		connection.query(sql, (err, res) => {
-			if (err) throw err;
-			connection.release();
-			callback(res);
-		});
-	});
-};
-
-export const checkMiles = (discordId, callback) => {
-
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-    
-		checkExisting(discordId, existing => {
-			if (!existing[0]) {
-				const sql = `INSERT INTO miles (discord_id, miles) VALUES ('${discordId}', '0');`;
-				connection.query(sql, err => {
-					if (err) throw err;
-					console.log('Blake: one (1) passenger is entered into the miles table!');
-					connection.release();
-					callback(existing[0]);
-				});
-			}
-			else callback(existing[0]);
-		});
     });
 };
 
@@ -131,20 +97,6 @@ export const addAuctionEntry = (auctionId, bidderId, bid) => {
     });
 };
 
-export const payMiles = (discordId, quantity) => {
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-    
-        const sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
-		
-		connection.query(sql, (err) => {
-			if (err) throw err;
-			console.log(`Barbara: Deducted ${quantity} miles to user: ${discordId} for winning Auction!`);
-			connection.release();
-		});
-    });
-};
-
 export const getBidHistory = (auctionId, callback) => {
 	pool.getConnection((err, connection) => {
         if (err) throw err;
@@ -178,6 +130,20 @@ export const getWinners = (auctionId, numWinners, callback) => {
 			if (err) throw err;
 			connection.release();
 			callback(res);
+		});
+    });
+};
+
+export const payMiles = (discordId, quantity) => {
+	pool.getConnection((err, connection) => {
+        if (err) throw err;
+    
+        const sql = `UPDATE accounts SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
+		
+		connection.query(sql, (err) => {
+			if (err) throw err;
+			console.log(`Barbara: Deducted ${quantity} miles to user: ${discordId} for winning Auction!`);
+			connection.release();
 		});
     });
 };

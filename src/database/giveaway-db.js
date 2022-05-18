@@ -6,7 +6,8 @@ const pool = createPool({
 	host: process.env.HOST,
 	user: process.env.USERNAME,
 	password: process.env.PW,
-	database: process.env.DB
+	database: process.env.DB,
+	timezone: 'Z',
 });
 
 // CREATING A GIVEAWAY AND SAVING IT TO DATABASE

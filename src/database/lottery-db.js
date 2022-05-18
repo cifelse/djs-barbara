@@ -6,7 +6,8 @@ const pool = createPool({
 	host: process.env.HOST,
 	user: process.env.USERNAME,
 	password: process.env.PW,
-	database: process.env.DB
+	database: process.env.DB,
+	timezone: 'Z',
 });
 
 // CREATING A LOTTERY AND SAVING IT TO DATABASE
@@ -110,66 +111,6 @@ export const checkMaxTicketsAndEntries = (lotteryId, discordId, callback) => {
 			connection.release();
             callback(result[0]);
         });
-    });
-}
-
-export const checkExisting = (discordId, callback) => {
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-    
-		const sql = `SELECT * FROM miles WHERE discord_id = "${discordId}"`
-        
-		connection.query(sql, (err, res) => {
-			if (err) throw err;
-			connection.release();
-			callback(res);
-		});
-	});
-}
-
-export const checkExceedingQuantity = (discordId, quantity, callback) => {
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-		const sql = `SELECT miles FROM miles WHERE miles < ${quantity} AND discord_id = ${discordId}`;
-		connection.query(sql, (err, res) => {
-			if (err) throw err;
-			if (!res[0]) {
-				connection.release();
-				callback(false);
-				return;
-			}
-			connection.release();
-			callback(true);
-			return;
-		});
-	});
-}
-
-export const removeMiles = (discordId, quantity, callback) => {
-	pool.getConnection((err, connection) => {
-        if (err) throw err;
-		checkExisting(discordId, existing => {
-			if (!existing[0]) {
-				connection.release();
-				callback(null)
-				return;
-			}
-			checkExceedingQuantity(discordId, quantity, exceeded => {
-				if (exceeded) {
-					callback(true);
-					connection.release();
-					return;
-				}
-				const sql = `UPDATE miles SET miles = miles - ${quantity} WHERE discord_id = '${discordId}'`;
-				connection.query(sql, (err) => {
-					if (err) throw err;
-					console.log(`Blake: Deducted ${quantity} miles to user: ${discordId}`);
-					connection.release();
-					callback(false);
-					return;
-				});
-			})
-		});
     });
 }
 
